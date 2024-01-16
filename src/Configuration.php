@@ -10,16 +10,10 @@ use Time2Split\Help\Optional;
  *
  * @author zuri
  */
-interface IConfig extends \ArrayAccess, \Traversable
+interface Configuration extends \ArrayAccess, \Traversable
 {
 
     public function getInterpolator(): Interpolator;
-
-    /**
-     * An access key of $this may be composed of multiple parts defining a path in the configuration tree.
-     * The delimiter is a character that permits to split a key in parts.
-     */
-    public function getKeyDelimiter(): string;
 
     // ========================================================================
     public function traversableKeys(): \Traversable;
@@ -42,12 +36,12 @@ interface IConfig extends \ArrayAccess, \Traversable
 
     /**
      * Select a sub-tree of $this and set its root to be the one
-     * of the new IConfig instance.
+     * of the new Configuration instance.
      */
     public function subConfig($offset): static;
 
     /**
-     * Select some sub-trees of $this but preserve its parent $offset.
+     * Select some sub-trees of $this but preserve their parent $offset.
      */
     public function select($offset, ...$moreOffsets): static;
 

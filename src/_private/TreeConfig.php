@@ -1,21 +1,22 @@
 <?php
 namespace Time2Split\Config\_private;
 
-use Time2Split\Config\IConfig;
+use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\TreeConfigBuilder;
 
 /**
  * A TreeConfig is a hierarchical configuration in which its element can be accessed with a single key (eg.
- * $config[$key]) representing a path in the tree.
+ * $config[$key]) representing a path in the tree
+ *
  * Each part of the path is delimited by an internal delimiter character.
  * Each node of the configuration can be set to a value.
  *
  *
  * @author zuri
  */
-final class TreeConfig implements IConfig, \IteratorAggregate
+final class TreeConfig implements Configuration, \IteratorAggregate
 {
     use ConfigUtilities;
 

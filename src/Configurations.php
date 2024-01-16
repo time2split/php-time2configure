@@ -2,32 +2,33 @@
 namespace Time2Split\Config;
 
 use Time2Split\Config\_private\TreeConfigHierarchy;
+use Time2Split\Help\Classes\NotInstanciable;
 
-final class Configs
+final class Configurations
 {
-    use \Time2Split\Help\Classes\NotInstanciable;
+    use NotInstanciable;
 
-    public static function empty(): IConfig
+    public static function empty(): Configuration
     {
         return TreeConfigBuilder::builder()->build();
     }
 
-    public static function of(IConfig $config): IConfig
+    public static function of(Configuration $config): Configuration
     {
         return TreeConfigBuilder::of($config)->build();
     }
 
-    public static function emptyOf(IConfig $config): IConfig
+    public static function emptyOf(Configuration $config): Configuration
     {
         return TreeConfigBuilder::emptyOf($config)->build();
     }
 
     /**
-     * Create a new IConfig instance that inherit all data from $parent.
-     * The $parent instance defines default values for the new IConfig instance that always exist.
+     * Create a new Configuration instance that inherit all data from $parent.
+     * The $parent instance defines default values for the new Configuration instance that always exist.
      * The default values can be shadowed by that in the new instance.
      */
-    public static function emptyChild(IConfig $parent): IConfig
+    public static function emptyChild(Configuration $parent): Configuration
     {
         $child = TreeConfigBuilder::emptyOf($parent)->build();
 
@@ -40,31 +41,31 @@ final class Configs
     // ========================================================================
 
     /**
-     * Merge the first level of a $config,
+     * Merge the first level of tree shaped data within a Configuration instance,
      * that is add all the key/value pairs from $config.
      *
      * @param array $config
      */
-    public static function flatMerge(IConfig $config, array|\Traversable $array): void
+    public static function flatMerge(Configuration $config, array|\Traversable $data): void
     {
-        foreach ($array as $k => $v)
+        foreach ($data as $k => $v)
             $config[$k] = $v;
     }
 
-    private static function linearizePath(array $path, IConfig $config)
+    private static function linearizePath(array $path, Configuration $config)
     {
         return \implode($config->getKeyDelimiter(), $path);
     }
 
     /**
-     * Merge some configuration data.
-     * The merge occurs recursively with sub-data.
-     * If a sub-data is a list, then the list is considered as a simple value and the recursion stop.
+     * Merge all levels of tree-shaped data within a Configuration instance,
+     * The merge occurs recursively with the sub-data.
+     * If an array sub-data is a list, then the list is considered as a simple value and the recursion stop.
      *
      * @param array $config
      *            The configuration data
      */
-    public static function merge(IConfig $config, array|\Traversable $data): void
+    public static function merge(Configuration $config, array|\Traversable $data): void
     {
         $linearize = fn ($path) => self::linearizePath($path, $config);
 

@@ -1,7 +1,7 @@
 <?php
 namespace Time2Split\Config\_private;
 
-use Time2Split\Config\IConfig;
+use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolator;
 
 /**
@@ -9,7 +9,7 @@ use Time2Split\Config\Interpolator;
  *
  * @author zuri
  */
-final class TreeConfigHierarchy implements IConfig, \IteratorAggregate
+final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
 {
     use ConfigUtilities;
 
@@ -19,7 +19,7 @@ final class TreeConfigHierarchy implements IConfig, \IteratorAggregate
     private array $rlist;
 
     // ========================================================================
-    public function __construct(IConfig ...$list)
+    public function __construct(Configuration ...$list)
     {
         $delims = [];
 
@@ -31,7 +31,7 @@ final class TreeConfigHierarchy implements IConfig, \IteratorAggregate
         $this->rlist = \array_reverse($list);
     }
 
-    public function append(IConfig $child): static
+    public function append(Configuration $child): static
     {
         $list = \array_reverse($this->rlist);
         $list[] = $child;
@@ -54,7 +54,7 @@ final class TreeConfigHierarchy implements IConfig, \IteratorAggregate
     }
 
     // ========================================================================
-    private function last(): IConfig
+    private function last(): Configuration
     {
         return \Time2Split\Help\Arrays::first($this->rlist);
     }

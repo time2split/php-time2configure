@@ -1,7 +1,7 @@
 <?php
 namespace Time2Split\Config\_private;
 
-use Time2Split\Config\Configs;
+use Time2Split\Config\Configurations;
 
 trait ConfigUtilities
 {
@@ -18,11 +18,11 @@ trait ConfigUtilities
 
     public function flatMerge(array|\Traversable $array): void
     {
-        Configs::flatMerge($this, $array);
+        Configurations::flatMerge($this, $array);
     }
 
     public function merge(array|\Traversable $data): void
     {
-        Configs::merge($this, $data);
+        Configurations::merge($this, $data);
     }
 }

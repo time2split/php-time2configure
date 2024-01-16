@@ -1,7 +1,7 @@
 <?php
 namespace Time2Split\Config\_private;
 
-use Time2Split\Config\Value\Getters;
+use Time2Split\Config\_private\Value\Getters;
 
 final class InterpolationReader
 {
@@ -46,7 +46,7 @@ final class InterpolationReader
             $get = $this->nextGetter();
 
             if (! empty($get)) {
-                $getters[] = Getters::fromCallable($get);
+                $getters[] = Getters::fromClosure($get);
                 $update = true;
             }
         } while ($update);
@@ -62,7 +62,7 @@ final class InterpolationReader
                 return \Time2Split\Help\Optional::empty();
         } else
 
-            $v = Getters::fromCallable(function ($subject) use ($getters) {
+            $v = Getters::fromClosure(function ($subject) use ($getters) {
                 return Getters::map($getters, $subject);
             });
 
@@ -104,7 +104,7 @@ final class InterpolationReader
         return \Time2Split\Help\FIO::streamGetChars($this->fp, fn ($c) => \ctype_alnum($c) || $c === '=' || $c === '.');
     }
 
-    private function nextGetter(): ?callable
+    private function nextGetter(): ?\Closure
     {
         $interpolation = null;
         $states = [

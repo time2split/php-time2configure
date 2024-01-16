@@ -1,5 +1,5 @@
 <?php
-namespace Time2Split\Config\Value;
+namespace Time2Split\Config\_private\Value;
 
 /**
  * Get (or compute) a value from a subject.

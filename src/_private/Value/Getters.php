@@ -1,5 +1,5 @@
 <?php
-namespace Time2Split\Config\Value;
+namespace Time2Split\Config\_private\Value;
 
 final class Getters
 {
@@ -9,13 +9,13 @@ final class Getters
         throw new \Error();
     }
 
-    public static function fromCallable(callable $get): Getter
+    public static function fromClosure(\Closure $get): Getter
     {
         return new class($get) implements Getter {
 
             private $get;
 
-            function __construct(callable $get)
+            function __construct(\Closure $get)
             {
                 $this->get = $get;
             }

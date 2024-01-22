@@ -16,22 +16,22 @@ interface Interpolator
 {
 
     /**
-     * Compile a value if an interpolation is possible.
+     * Compile a value if possible
      *
      * @param mixed $value
      *            The value to compile
-     * @return Optional An optional filled if there is a compilation
+     * @return Optional An optional filled by the compilation
      */
     public function compile($value): Optional;
 
     /**
      * Execute the compilation (if set) and return the result
      *
-     * @param mixed $value
-     *            The value to execute
+     * @param mixed $compilation
+     *            The compilation to execute
      * @param Configuration $config
      *            The Configuration instance to consider
-     * @return Optional An Optional filled by the execution of the compilation (if $value is really a compilation)
+     * @return Optional The result of the execution of the compilation
      */
-    public function execute($value, Configuration $config): Optional;
+    public function execute($compilation, Configuration $config): mixed;
 }

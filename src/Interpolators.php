@@ -32,9 +32,9 @@ class Interpolators
                 return Optional::empty();
             }
 
-            public function execute($value, Configuration $config): Optional
+            public function execute($compilation, Configuration $config): mixed
             {
-                return Optional::empty();
+                throw new \Error();
             }
         };
     }
@@ -64,21 +64,20 @@ class Interpolators
                 if (! $res->isPresent())
                     return Optional::empty();
 
-                $res = new Interpolation($value, $res->get());
-                return Optional::of($res);
+                return Optional::of($res->get());
             }
 
-            public function execute($value, Configuration $config): Optional
+            public function execute($compilation, Configuration $config): mixed
             {
-                if ($value instanceof Interpolation && $value->compilation instanceof Getter) {
-                    $v = $value->compilation->get($config);
+                if ($compilation instanceof Getter) {
+                    $v = $compilation->get($config);
 
                     if (\is_array($v))
                         $v = \implode('', $v);
 
-                    return Optional::of($v);
+                    return $v;
                 }
-                return Optional::empty();
+                throw new \Error();
             }
         };
     }

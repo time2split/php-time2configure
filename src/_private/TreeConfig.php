@@ -98,12 +98,10 @@ final class TreeConfig implements Configuration, \IteratorAggregate
 
     private function interpolate($value): mixed
     {
-        $res = $this->interpolator->execute($value, $this);
+        if (! ($value instanceof Interpolation))
+            return $value;
 
-        if ($res->isPresent())
-            return $res->get();
-
-        return $value;
+        return $this->interpolator->execute($value->compilation, $this);
     }
 
     private function getSourceValueOf($value): mixed
@@ -133,7 +131,7 @@ final class TreeConfig implements Configuration, \IteratorAggregate
         $compilation = $this->interpolator->compile($value);
 
         if ($compilation->isPresent())
-            $value = $compilation->get();
+            $value = new Interpolation($value, $compilation->get());
 
         $this->setStoredValue($offset, $value);
     }

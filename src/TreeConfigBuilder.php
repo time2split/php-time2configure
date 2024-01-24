@@ -1,6 +1,8 @@
 <?php
 namespace Time2Split\Config;
 
+use Time2Split\Config\_private\ConfigUtilities;
+
 /**
  * A builder of tree-shaped Configuration instances.
  * The created Configuration is a tree where each node may have a value.
@@ -127,7 +129,7 @@ final class TreeConfigBuilder
         $this->interpolator); //
 
         if (! empty($this->content))
-            $ret->merge($this->content);
+            Configurations::mergeArrayRecursive($ret, $this->content);
 
         return $ret;
     }

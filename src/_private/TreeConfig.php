@@ -319,21 +319,4 @@ final class TreeConfig implements Configuration, \IteratorAggregate
     {
         return $this->generateKeysOf($this->data);
     }
-
-    // ========================================================================
-
-    /**
-     * Merge the first level of an array, that is replace only the non existant path in the TreeConfig by those in the array.
-     *
-     * @param array $config
-     */
-    public function union(iterable $config): void
-    {
-        foreach ($config as $k => $v)
-
-            if (! isset($this[$k]))
-                $this[$k] = $v;
-    }
-
-    // ========================================================================
 }

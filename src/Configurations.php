@@ -39,39 +39,42 @@ final class Configurations
     }
 
     // ========================================================================
-
-    /**
-     * Merge the first level of tree shaped data within a Configuration instance,
-     * that is add all the key/value pairs from $config.
-     *
-     * @param array $config
-     */
-    public static function flatMerge(Configuration $config, array|\Traversable $data): void
-    {
-        foreach ($data as $k => $v)
-            $config[$k] = $v;
-    }
-
     private static function linearizePath(array $path, Configuration $config)
     {
         return \implode($config->getKeyDelimiter(), $path);
     }
 
     /**
-     * Merge all levels of tree-shaped data within a Configuration instance,
-     * The merge occurs recursively with the sub-data.
+     * Merge all levels of tree-shaped data source within a Configuration instance destination.
+     * The merge occurs recursively with the sub-data of the source.
      * If an array sub-data is a list, then the list is considered as a simple value and the recursion stop.
-     *
-     * @param array $config
-     *            The configuration data
      */
-    public static function merge(Configuration $config, array|\Traversable $data): void
+    public static function mergeArrayRecursive(Configuration $dest, array $src): void
     {
-        $linearize = fn ($path) => self::linearizePath($path, $config);
+        $linearize = fn ($path) => self::linearizePath($path, $dest);
+        \Time2Split\Help\Arrays::linearArrayRecursive($dest, $src, $linearize);
+    }
 
-        if (\is_array($data))
-            \Time2Split\Help\Arrays::linearArrayRecursive($config, $data, $linearize);
-        else
-            self::flatMerge($config, \iterator_to_array($data));
+    /**
+     * Copy the items of a sequence data source into a Configuration instance destination,
+     * that is copy all the key => value pairs from $src into $dest.
+     */
+    public static function mergeTraversable(Configuration $dest, array|\Traversable $src): void
+    {
+        foreach ($src as $k => $v)
+            $dest[$k] = $v;
+    }
+
+    public static function merge(Configuration $dest, Configuration $src): void
+    {
+        self::mergeTraversable($dest, $src->toArray());
+    }
+
+    public static function union(Configuration $dest, Configuration $src): void
+    {
+        // @TODO better with a method $dest->setIfAbsent()
+        foreach ($src as $k => $v)
+            if (! $dest->isPresent($k))
+                $dest[$k] = $v;
     }
 }

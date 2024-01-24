@@ -2,6 +2,7 @@
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configurations;
+use Time2Split\Config\Configuration;
 
 trait ConfigUtilities
 {
@@ -16,13 +17,13 @@ trait ConfigUtilities
         return \iterator_to_array($this->traversableKeys());
     }
 
-    public function flatMerge(array|\Traversable $array): void
+    public function merge(Configuration $config): void
     {
-        Configurations::flatMerge($this, $array);
+        Configurations::merge($this, $config);
     }
 
-    public function merge(array|\Traversable $data): void
+    public function union(Configuration $config): void
     {
-        Configurations::merge($this, $data);
+        Configurations::union($this, $config);
     }
 }

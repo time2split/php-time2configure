@@ -51,7 +51,7 @@ interface Configuration extends \ArrayAccess, \Traversable
 
     public function keys(): array;
 
-    public function flatMerge(array|\Traversable $array): void;
+    public function merge(Configuration $config): void;
 
-    public function merge(array|\Traversable $data): void;
+    public function union(Configuration $config): void;
 }

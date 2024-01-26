@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 namespace Time2Split\Config;
 
 use Time2Split\Config\_private\TreeConfigHierarchy;
@@ -31,11 +32,18 @@ final class Configurations
     public static function emptyChild(Configuration $parent): Configuration
     {
         $child = TreeConfigBuilder::emptyOf($parent)->build();
+        return self::hierarchy($parent, $child);
+    }
+
+    public static function hierarchy(Configuration $parent, Configuration ...$childs): Configuration
+    {
+        if (empty($childs))
+            return $parent;
 
         if ($parent instanceof TreeConfigHierarchy)
-            return $parent->append($child);
+            return $parent->append(...$childs);
 
-        return new TreeConfigHierarchy($parent, $child);
+        return new TreeConfigHierarchy($parent, ...$childs);
     }
 
     // ========================================================================

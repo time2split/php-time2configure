@@ -18,7 +18,7 @@ interface Configuration extends \ArrayAccess, \Traversable
     // ========================================================================
     public function traversableKeys(): \Traversable;
 
-    public function getOptional($offset): Optional;
+    public function getOptional($offset, bool $interpolate = true): Optional;
 
     public function isPresent($offset): bool;
 

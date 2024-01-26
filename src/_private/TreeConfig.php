@@ -5,6 +5,7 @@ use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\TreeConfigBuilder;
+use Time2Split\Help\Optional;
 
 /**
  * A TreeConfig is a hierarchical configuration in which its element can be accessed with a single key (eg.
@@ -159,14 +160,14 @@ final class TreeConfig implements Configuration, \IteratorAggregate
         return $this->interpolate($val);
     }
 
-    public function getOptional($offset): \Time2Split\Help\Optional
+    public function getOptional($offset, bool $interpolate = true): Optional
     {
         $val = $this->getWithoutInterpolation($offset);
 
         if ($val === TreeConfigSpecial::absent)
-            return \Time2Split\Help\Optional::empty();
+            return Optional::empty();
 
-        return \Time2Split\Help\Optional::of($this->interpolate($val));
+        return Optional::of($interpolate ? $this->interpolate($val) : $val);
     }
 
     public function isPresent($offset): bool

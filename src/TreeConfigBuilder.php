@@ -1,8 +1,6 @@
 <?php
 namespace Time2Split\Config;
 
-use Time2Split\Config\_private\ConfigUtilities;
-
 /**
  * A builder of tree-shaped Configuration instances.
  * The created Configuration is a tree where each node may have a value.

@@ -3,6 +3,8 @@ namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolator;
+use Time2Split\Help\Optional;
+use Time2Split\Config\Interpolation;
 
 /**
  * A sequence of TreeConfig instances where the the last one is the only mutable instance.
@@ -91,23 +93,29 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
     private function get($offset): mixed
     {
         foreach ($this->rlist as $c) {
-            $v = $c->getOptional($offset);
+            $v = $c->getOptional($offset, false);
 
-            if ($v->isPresent())
-                return $v->get();
+            if ($v->isPresent()) {
+                $v = $v->get();
+
+                if ($v instanceof Interpolation)
+                    return $c->getInterpolator()->execute($v->compilation, $this);
+
+                return $v;
+            }
         }
         return null;
     }
 
-    public function getOptional($offset): \Time2Split\Help\Optional
+    public function getOptional($offset, bool $interpolate = true): Optional
     {
         foreach ($this->rlist as $c) {
-            $v = $c->getOptional($offset);
+            $v = $c->getOptional($offset, $interpolate);
 
             if ($v->isPresent())
                 return $v;
         }
-        return \Time2Split\Help\Optional::empty();
+        return Optional::empty();
     }
 
     public function isPresent($offset): bool

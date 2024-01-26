@@ -10,7 +10,6 @@ use Time2Split\Help\Optional;
  * and substitute it by the $config[$key] value of the Configuration instance.
  *
  * @author zuri
- *
  */
 interface Interpolator
 {
@@ -31,7 +30,7 @@ interface Interpolator
      *            The compilation to execute
      * @param Configuration $config
      *            The Configuration instance to consider
-     * @return Optional The result of the execution of the compilation
+     * @return mixed The result of the execution of the compilation
      */
     public function execute($compilation, Configuration $config): mixed;
 }

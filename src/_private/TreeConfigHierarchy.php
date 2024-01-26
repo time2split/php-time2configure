@@ -1,10 +1,11 @@
 <?php
+declare(strict_types = 1);
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configuration;
+use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Help\Optional;
-use Time2Split\Config\Interpolation;
 
 /**
  * A sequence of TreeConfig instances where the the last one is the only mutable instance.
@@ -28,15 +29,15 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
         $udelims = \Time2Split\Help\Arrays::map_unique(fn ($i) => $i->getKeyDelimiter(), $list);
 
         if (\count($udelims) > 1)
-            throw new \Error(__class__ . " Has multiple delimiters: " . print_r($delims, true));
+            throw new \Error("Has multiple delimiters: " . print_r($delims, true));
 
         $this->rlist = \array_reverse($list);
     }
 
-    public function append(Configuration $child): static
+    public function append(Configuration ...$childs): static
     {
         $list = \array_reverse($this->rlist);
-        $list[] = $child;
+        $list = \array_merge($list, $childs);
         return new self(...$list);
     }
 

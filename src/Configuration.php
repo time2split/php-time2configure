@@ -10,13 +10,13 @@ use Time2Split\Help\Optional;
  *
  * @author zuri
  */
-interface Configuration extends \ArrayAccess, \Traversable
+interface Configuration extends \ArrayAccess, \IteratorAggregate
 {
 
     public function getInterpolator(): Interpolator;
 
     // ========================================================================
-    public function traversableKeys(): \Traversable;
+    public function getIterator(): \Iterator;
 
     public function getOptional($offset, bool $interpolate = true): Optional;
 
@@ -48,8 +48,6 @@ interface Configuration extends \ArrayAccess, \Traversable
     // ========================================================================
     // Utilities
     public function toArray(): array;
-
-    public function keys(): array;
 
     public function merge(Configuration $config): void;
 

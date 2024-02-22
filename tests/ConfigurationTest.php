@@ -3,6 +3,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Time2Split\Config\Configurations;
 use Time2Split\Help\Arrays;
+use Time2Split\Help\Traversables;
 
 final class ConfigurationTest extends TestCase
 {
@@ -144,8 +145,7 @@ final class ConfigurationTest extends TestCase
             $flatKeys = \array_keys($flatResult);
 
             $this->assertTrue(Arrays::contentEquals($flatKeys, \array_keys($toArray)));
-            $this->assertTrue(Arrays::contentEquals($flatKeys, $config->keys()));
-            $this->assertTrue(Arrays::contentEquals($flatKeys, \iterator_to_array($config->traversableKeys())));
+            $this->assertTrue(Arrays::contentEquals($flatKeys, Configurations::getKeysOf($config)));
         }
 
         // Clear

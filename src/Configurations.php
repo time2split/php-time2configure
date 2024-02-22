@@ -3,6 +3,7 @@ declare(strict_types = 1);
 namespace Time2Split\Config;
 
 use Time2Split\Config\_private\TreeConfigHierarchy;
+use Time2Split\Help\Traversables;
 use Time2Split\Help\Classes\NotInstanciable;
 
 final class Configurations
@@ -51,6 +52,12 @@ final class Configurations
             return $parent->append(...$childs);
 
         return new TreeConfigHierarchy($parent, ...$childs);
+    }
+
+    // ========================================================================
+    public static function getKeysOf(Configuration $config): array
+    {
+        return \iterator_to_array(Traversables::keys($config));
     }
 
     // ========================================================================

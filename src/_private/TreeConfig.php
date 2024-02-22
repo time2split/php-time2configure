@@ -274,7 +274,7 @@ final class TreeConfig implements Configuration, \IteratorAggregate
     }
 
     // ========================================================================
-    private function generateKeyValuePairsOf(array $data)
+    private function generateKeyValuePairsOf(array $data): \Generator
     {
         foreach ($data as $k => $v) {
 
@@ -293,7 +293,7 @@ final class TreeConfig implements Configuration, \IteratorAggregate
         }
     }
 
-    private function generateKeysOf(array $data)
+    private function generateKeysOf(array $data): \Generator
     {
         foreach ($data as $k => $v) {
 
@@ -311,13 +311,8 @@ final class TreeConfig implements Configuration, \IteratorAggregate
     }
 
     // ========================================================================
-    public function getIterator(): \Traversable
+    public function getIterator(): \Generator
     {
         return self::generateKeyValuePairsOf($this->data);
-    }
-
-    public function traversableKeys(): \Traversable
-    {
-        return $this->generateKeysOf($this->data);
     }
 }

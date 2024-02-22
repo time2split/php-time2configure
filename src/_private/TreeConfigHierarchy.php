@@ -161,22 +161,7 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
     }
 
     // ========================================================================
-    public function traversableKeys(): \Traversable
-    {
-        $cache = [];
-
-        foreach ($this->rlist as $config) {
-            foreach ($config->traversableKeys() as $k) {
-
-                if (! isset($cache[$k])) {
-                    $cache[$k] = true;
-                    yield $k;
-                }
-            }
-        }
-    }
-
-    public function getIterator(): \Traversable
+    public function getIterator(): \Generator
     {
         $cache = [];
 

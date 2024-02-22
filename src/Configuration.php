@@ -10,7 +10,7 @@ use Time2Split\Help\Optional;
  *
  * @author zuri
  */
-interface Configuration extends \ArrayAccess, \IteratorAggregate
+interface Configuration extends \ArrayAccess, \IteratorAggregate, \Countable
 {
 
     public function getInterpolator(): Interpolator;

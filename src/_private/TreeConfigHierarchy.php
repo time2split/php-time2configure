@@ -6,6 +6,7 @@ use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Help\Optional;
+use Time2Split\Help\Traversables;
 
 /**
  * A sequence of TreeConfig instances where the the last one is the only mutable instance.
@@ -70,6 +71,11 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
     public function getKeyDelimiter(): string
     {
         return $this->last()->getKeyDelimiter();
+    }
+
+    public function count(): int
+    {
+        return Traversables::count($this);
     }
 
     // ========================================================================

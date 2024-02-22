@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Time2Split\Config\Configurations;
@@ -7,6 +8,25 @@ use Time2Split\Help\Traversables;
 
 final class ConfigurationTest extends TestCase
 {
+
+    public static function getConfigProviders(array ...$configs): array
+    {
+        return [
+            'simple' => fn () => Configurations::ofRecursive(\array_merge_recursive(...$configs)),
+            'childs' => function () use ($configs) {
+                $configs = \array_reverse($configs);
+
+                $config = Configurations::ofRecursive(\array_pop($configs));
+
+                while (! empty($configs)) {
+                    $config = Configurations::emptyChild($config);
+                    $config->merge(Configurations::ofRecursive(\array_pop($configs)));
+                }
+                return $config;
+            },
+            'hierarchy' => fn () => Configurations::hierarchy(...\array_map(Configurations::ofRecursive(...), $configs))
+        ];
+    }
 
     public static function configProvider(): array
     {
@@ -38,13 +58,18 @@ final class ConfigurationTest extends TestCase
             'b.b.c',
             'x'
         ];
-        $ret[] = [
-            [
-                'provide' => fn () => Configurations::ofRecursive($initial),
-                'flat' => $flat,
-                'absent' => $absent
-            ]
-        ];
+
+        $providers = self::getConfigProviders($initial);
+
+        foreach ($providers as $provider)
+            $ret[] = [
+
+                [
+                    'provide' => $provider,
+                    'flat' => $flat,
+                    'absent' => $absent
+                ]
+            ];
         // ====================================================================
         $over = [
             'A' => 'vA',
@@ -69,31 +94,54 @@ final class ConfigurationTest extends TestCase
         ];
         $overAbsent = $absent;
         unset($overAbsent['b']);
-        $ret[] = [
-            [
-                'provide' => function () use ($initial, $over) {
-                    $config = Configurations::ofRecursive($initial);
-                    $config = Configurations::emptyChild($config);
-                    $config->merge(Configurations::ofRecursive($over));
 
-                    return $config;
-                },
-                'flat' => $overFlat,
-                'absent' => $overAbsent,
-                'clear' => $flat
-            ]
-        ];
-        // ====================================================================
-        $ret[] = [
+        $providers = self::getConfigProviders($initial, $over);
+        $ret['over/flat;hierarchy'] = [
             [
-                'provide' => fn () => Configurations::hierarchy(Configurations::ofRecursive($initial), Configurations::ofRecursive($over)),
+                'provide' => $providers['hierarchy'],
                 'flat' => $overFlat,
                 'absent' => $overAbsent,
                 'clear' => $flat
             ]
         ];
+        $ret['over/flat;child'] = [
+            [
+                'provide' => $providers['childs'],
+                'flat' => $overFlat,
+                'absent' => $overAbsent,
+                'clear' => $flat
+            ]
+        ];
+
+        // ====================================================================
+        $providers = self::getConfigProviders($over, $initial);
+        $overClear = $over;
+        $overClear['a.b'] = $over['a']['b'];
+        unset($overClear['a']);
+        $ret['flat/over:hierarchy'] = [
+            [
+                'provide' => $providers['hierarchy'],
+                'flat' => $overFlat,
+                'absent' => $overAbsent,
+                'clear' => $overClear
+            ]
+        ];
+        $ret['flat/over;child'] = [
+            [
+                'provide' => $providers['childs'],
+                'flat' => $overFlat,
+                'absent' => $overAbsent,
+                'clear' => $overClear
+            ]
+        ];
+
         // ====================================================================
         return $ret;
+    }
+
+    private function assertArrayEquals(array $a, array $b)
+    {
+        $this->assertTrue(Arrays::contentEquals($a, $b), sprintf("Expect\n%s but have\n%s", print_r($a, true), print_r($b, true)));
     }
 
     #[DataProvider('configProvider')]
@@ -144,13 +192,14 @@ final class ConfigurationTest extends TestCase
             // Keys
             $flatKeys = \array_keys($flatResult);
 
-            $this->assertTrue(Arrays::contentEquals($flatKeys, \array_keys($toArray)));
-            $this->assertTrue(Arrays::contentEquals($flatKeys, Configurations::getKeysOf($config)));
+            $this->assertArrayEquals($flatKeys, \array_keys($toArray));
+            $this->assertArrayEquals($flatKeys, Configurations::getKeysOf($config));
         }
 
         // Clear
         $cleared = $clone;
         $cleared->clear();
+        $clearedToArray = $cleared->toArray();
 
         $empty = Configurations::emptyOf($config);
         $this->assertSame(0, \count($empty));
@@ -162,7 +211,7 @@ final class ConfigurationTest extends TestCase
             $this->assertSame($interpolator, $empty->getInterpolator());
 
         if ($expectClear = $args['clear'] ?? []) {
-            $this->assertTrue(Arrays::contentEquals($expectClear, $cleared->toArray()));
+            $this->assertArrayEquals($expectClear, $clearedToArray);
             $this->assertSame(\count($expectClear), \count($cleared));
         }
     }

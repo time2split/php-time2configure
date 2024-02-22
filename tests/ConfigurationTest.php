@@ -152,13 +152,18 @@ final class ConfigurationTest extends TestCase
         $cleared = $clone;
         $cleared->clear();
 
+        $empty = Configurations::emptyOf($config);
+        $this->assertSame(0, \count($empty));
+
         foreach ([
             $cleared,
-            Configurations::emptyOf($config)
+            $empty
         ] as $empty)
             $this->assertSame($interpolator, $empty->getInterpolator());
 
-        if ($expectClear = $args['clear'] ?? [])
+        if ($expectClear = $args['clear'] ?? []) {
             $this->assertTrue(Arrays::contentEquals($expectClear, $cleared->toArray()));
+            $this->assertSame(\count($expectClear), \count($cleared));
+        }
     }
 }

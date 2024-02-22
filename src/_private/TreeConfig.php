@@ -27,12 +27,15 @@ final class TreeConfig implements Configuration, \IteratorAggregate
 
     private array $data;
 
+    private int $count;
+
     // ========================================================================
     public function __construct(string $delimiter, Interpolator $interpolator)
     {
         $this->data = [];
         $this->delimiter = $delimiter;
         $this->interpolator = $interpolator;
+        $this->count = 0;
     }
 
     // ========================================================================
@@ -44,6 +47,11 @@ final class TreeConfig implements Configuration, \IteratorAggregate
     public function getKeyDelimiter(): string
     {
         return $this->delimiter;
+    }
+
+    public function count(): int
+    {
+        return $this->count;
     }
 
     // ========================================================================
@@ -114,15 +122,16 @@ final class TreeConfig implements Configuration, \IteratorAggregate
     }
 
     // ========================================================================
-    private static function updateOnUnexists(&$data, $k, $v): void
+    private function updateOnUnexists(&$data, $k, $v): void
     {
+        $this->count ++;
         $data[$k] = $v;
     }
 
     private function setStoredValue($offset, $value): void
     {
         $update = $this->getUpdateList($offset, $value);
-        \Time2Split\Help\Arrays::updateRecursive($update, $this->data, self::updateOnUnexists(...));
+        \Time2Split\Help\Arrays::updateRecursive($update, $this->data, $this->updateOnUnexists(...));
     }
 
     // For external/user access
@@ -181,8 +190,10 @@ final class TreeConfig implements Configuration, \IteratorAggregate
         $last = \array_pop($path);
         $val = &$this->followPath($path);
 
-        if ($val !== TreeConfigSpecial::absent)
+        if ($val !== TreeConfigSpecial::absent) {
+            $this->count --;
             unset($val[$last]);
+        }
     }
 
     // ========================================================================

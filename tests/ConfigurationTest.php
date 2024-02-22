@@ -215,4 +215,86 @@ final class ConfigurationTest extends TestCase
             $this->assertSame(\count($expectClear), \count($cleared));
         }
     }
+
+    // ========================================================================
+    public static function subConfigProvider(): array
+    {
+        $aconfig = [
+            'a.a' => 1,
+            'a.b' => 2
+        ];
+        $bconfig = [
+            'b.a.a' => 10,
+            'b.a.b' => 11,
+            'b.b' => 20
+        ];
+        $sub = fn ($nullResult) => [
+            [
+                null,
+                $nullResult
+            ],
+            [
+                'a',
+                [
+                    'a' => 1,
+                    'b' => 2
+                ]
+            ],
+            [
+                'b',
+                [
+                    'a.a' => 10,
+                    'a.b' => 11,
+                    'b' => 20
+                ]
+            ],
+            [
+                'b.a',
+                [
+                    'a' => 10,
+                    'b' => 11
+                ]
+            ]
+        ];
+        $ret['a/b'] = [
+            [
+                'configs' => [
+                    $aconfig,
+                    $bconfig
+                ],
+                'sub' => $sub(\array_merge($aconfig, $bconfig))
+            ]
+        ];
+        $ret['b/a'] = [
+            [
+                'configs' => [
+                    $bconfig,
+                    $aconfig
+                ],
+                'sub' => $sub(\array_merge($bconfig, $aconfig))
+            ]
+        ];
+        return $ret;
+    }
+
+    #[DataProvider('subConfigProvider')]
+    public function testSubConfig(array $args): void
+    {
+        $configs = $args['configs'];
+        $sub = $args['sub'];
+        $merged = \array_merge(...$configs);
+        $providers = self::getConfigProviders(...$configs);
+
+        foreach ($providers as $provider) {
+            $config = $provider();
+
+            foreach ($sub as [
+                $k,
+                $subResult
+            ]) {
+                $subConfig = $config->subConfig($k);
+                $this->assertSame($subResult, $subConfig->toArray());
+            }
+        }
+    }
 }

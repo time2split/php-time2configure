@@ -28,5 +28,8 @@
 	"require": {
 		"php": ">=8.2",
 		"time2split/time2help": "dev-develop"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^11"
 	}
 }

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types = 1);
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configuration;
@@ -84,7 +85,7 @@ final class TreeConfig implements Configuration, \IteratorAggregate
         return $ret;
     }
 
-    private function makeUserPath(string $key)
+    private function makeUserPath($key)
     {
         return "$key{$this->delimiter}";
     }
@@ -94,7 +95,7 @@ final class TreeConfig implements Configuration, \IteratorAggregate
         return \Time2Split\Help\Arrays::follow($this->data, $path, TreeConfigSpecial::absent);
     }
 
-    private function &followOffset(string $offset): mixed
+    private function &followOffset($offset): mixed
     {
         return $this->followPath($this->explodePath($offset));
     }

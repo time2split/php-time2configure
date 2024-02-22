@@ -24,6 +24,13 @@ final class Configurations
         return TreeConfigBuilder::emptyOf($config)->build();
     }
 
+    public static function ofRecursive(array $config, ?Interpolator $interpolator = null): Configuration
+    {
+        return TreeConfigBuilder::builder()->setInterpolator($interpolator)
+            ->setContent($config)
+            ->build();
+    }
+
     /**
      * Create a new Configuration instance that inherit all data from $parent.
      * The $parent instance defines default values for the new Configuration instance that always exist.

@@ -297,4 +297,78 @@ final class ConfigurationTest extends TestCase
             }
         }
     }
+
+    // ========================================================================
+    public static function selectProvider(): array
+    {
+        $aconfig = [
+            'a.a' => 1,
+            'a.b' => 2
+        ];
+        $bconfig = [
+            'b.a.a' => 10,
+            'b.a.b' => 11,
+            'b.b' => 20
+        ];
+        $baresult = [
+            'b.a.a' => 10,
+            'b.a.b' => 11
+        ];
+        $sub = fn ($nullResult) => [
+            [
+                null,
+                $nullResult
+            ],
+            [
+                'a',
+                $aconfig
+            ],
+            [
+                'b',
+                $bconfig
+            ],
+            [
+                'b.a',
+                $baresult
+            ]
+        ];
+        $ret['a/b'] = [
+            /* 'configs' => */
+            [
+                $aconfig,
+                $bconfig
+            ],
+            /*'sub' =>*/
+            $sub(\array_merge($aconfig, $bconfig))
+        ];
+        $ret['b/a'] = [
+            /* 'configs' => */
+            [
+                $bconfig,
+                $aconfig
+            ],
+            /*'sub' =>*/
+            $sub(\array_merge($bconfig, $aconfig))
+        ];
+        return $ret;
+    }
+
+    #[DataProvider('selectProvider')]
+    public function testSelect(array $configs, array $sub): void
+    {
+        $merged = \array_merge(...$configs);
+        $providers = self::getConfigProviders(...$configs);
+
+        foreach ($providers as $provider) {
+            $config = $provider();
+
+            foreach ($sub as [
+                $k,
+                $subResult
+            ]) {
+                $subConfig = $config->select($k);
+                $this->assertSame($subResult, $subConfig->toArray(), "select $k");
+            }
+        }
+    }
 }

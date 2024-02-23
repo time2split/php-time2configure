@@ -4,14 +4,16 @@ namespace Time2Split\Config;
 /**
  * Extends the BaseConfiguration with utilities methods.
  *
- * @author zuri
+ * @author Olivier Rodriguez (zuri)
  */
-interface Configuration extends BaseConfiguration
+interface Configuration extends TreeConfiguration
 {
 
     public function toArray(): array;
 
-    public function merge(Configuration $config): void;
+    public function mergeTree(array $tree): static;
 
-    public function union(Configuration $config): void;
+    public function merge(Configuration $config): static;
+
+    public function union(Configuration $config): static;
 }

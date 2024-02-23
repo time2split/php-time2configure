@@ -7,13 +7,15 @@ use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Help\Optional;
 use Time2Split\Help\Traversables;
+use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 
 /**
  * A sequence of TreeConfig instances where the the last one is the only mutable instance.
  *
- * @author zuri
+ * @author Olivier Rodriguez (zuri)
+ *
  */
-final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
+final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, DelimitedKeys
 {
     use ConfigUtilities;
 
@@ -23,7 +25,7 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
     private array $rlist;
 
     // ========================================================================
-    public function __construct(Configuration ...$list)
+    public function __construct(Configuration&DelimitedKeys ...$list)
     {
         $delims = [];
 
@@ -39,15 +41,6 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
     {
         $list = \array_reverse($this->rlist);
         $list = \array_merge($list, $childs);
-        return new self(...$list);
-    }
-
-    public function resetInterpolator(Interpolator $interpolator): static
-    {
-        $list = $this->rlist;
-        $child = $this->last()->resetInterpolator($interpolator);
-        $list[0] = $child;
-        $list = \array_reverse($list);
         return new self(...$list);
     }
 
@@ -71,6 +64,11 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate
     public function getKeyDelimiter(): string
     {
         return $this->last()->getKeyDelimiter();
+    }
+
+    public function pathToOffset(array $path): string
+    {
+        return $this->last()->pathToOffset($path);
     }
 
     public function count(): int

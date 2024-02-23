@@ -6,25 +6,32 @@ use Time2Split\Config\Configurations;
 use Time2Split\Help\Arrays;
 use Time2Split\Help\Traversables;
 
+/**
+ *
+ * @author Olivier Rodriguez (zuri)
+ *
+ */
 final class ConfigurationTest extends TestCase
 {
 
     public static function getConfigProviders(array ...$configs): array
     {
+        $mconfigs = \array_merge_recursive(...$configs);
         return [
-            'simple' => fn () => Configurations::ofRecursive(\array_merge_recursive(...$configs)),
+            'simple' => fn () => Configurations::fromTree($mconfigs),
+            'builder' => fn () => Configurations::builder()->mergeTree($mconfigs),
             'childs' => function () use ($configs) {
                 $configs = \array_reverse($configs);
 
-                $config = Configurations::ofRecursive(\array_pop($configs));
+                $config = Configurations::fromTree(\array_pop($configs));
 
                 while (! empty($configs)) {
                     $config = Configurations::emptyChild($config);
-                    $config->merge(Configurations::ofRecursive(\array_pop($configs)));
+                    $config->merge(Configurations::fromTree(\array_pop($configs)));
                 }
                 return $config;
             },
-            'hierarchy' => fn () => Configurations::hierarchy(...\array_map(Configurations::ofRecursive(...), $configs))
+            'hierarchy' => fn () => Configurations::hierarchy(...\array_map(Configurations::fromTree(...), $configs))
         ];
     }
 
@@ -156,7 +163,7 @@ final class ConfigurationTest extends TestCase
         $baseConfig = $provide();
         $interpolator = $baseConfig->getInterpolator();
 
-        $copy = Configurations::of($baseConfig);
+        $copy = Configurations::from($baseConfig);
         $clone = clone $baseConfig;
         $configs = [
             $baseConfig,
@@ -193,7 +200,7 @@ final class ConfigurationTest extends TestCase
             $flatKeys = \array_keys($flatResult);
 
             $this->assertArrayEquals($flatKeys, \array_keys($toArray));
-            $this->assertArrayEquals($flatKeys, Configurations::getKeysOf($config));
+            $this->assertArrayEquals($flatKeys, iterator_to_array(Traversables::keys($config)));
         }
 
         // Clear
@@ -201,7 +208,7 @@ final class ConfigurationTest extends TestCase
         $cleared->clear();
         $clearedToArray = $cleared->toArray();
 
-        $empty = Configurations::emptyOf($config);
+        $empty = Configurations::emptyFrom($config);
         $this->assertSame(0, \count($empty));
 
         foreach ([

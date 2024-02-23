@@ -1,5 +1,11 @@
 <?php
+declare(strict_types = 1);
 namespace Time2Split\Config;
+
+use Time2Split\Config\_private\AbstractTreeConfig;
+use Time2Split\Config\_private\ConfigUtilities;
+use Time2Split\Config\_private\TreeConfig;
+use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 
 /**
  * A builder of tree-shaped Configuration instances.
@@ -7,17 +13,12 @@ namespace Time2Split\Config;
  * That is, considering '.' as a path node delimiter, if $config['parent.child'] is an existant path,
  * then $config['parent'] may have it's own value without breaking the tree structure of the instance.
  *
- * @author zuri
+ * @author Olivier Rodriguez (zuri)
  *
  */
-final class TreeConfigBuilder
+final class TreeConfigBuilder extends AbstractTreeConfig
 {
-
-    private string $delimiter;
-
-    private array|\Traversable $content;
-
-    private ?Interpolator $interpolator;
+    use ConfigUtilities;
 
     private function __construct()
     {
@@ -25,42 +26,44 @@ final class TreeConfigBuilder
     }
 
     /**
+     * !!Do not use this method manually, it is only intended for the uses of time2configure.!!
      * Get a new builder in its default state.
      *
      * By default the internal state of the builder is equivalent to call all the setters of the builder without any argument.
      *
      * @return TreeConfigBuilder The builder
      */
-    public static function builder(): TreeConfigBuilder
+    public static function _private_builder(): TreeConfigBuilder
     {
         return new TreeConfigBuilder();
     }
 
-    /**
-     * Get a builder which can create a copy of a Configuration instance
-     *
-     * @param Configuration $config
-     *            The instance
-     * @return self The builder
-     */
-    public static function of(Configuration $config): self
+    // ========================================================================
+    public function from(Configuration $config): self
     {
-        return self::emptyOf($config)->setContent(\iterator_to_array($config));
+        return $this->emptyFrom($config)->merge($config);
     }
 
-    /**
-     * Get a builder which can create an empty copy of a Configuration instance.
-     *
-     * @param Configuration $config
-     *            The instance
-     * @return self The builder
-     */
-    public static function emptyOf(Configuration $config): self
+    public function emptyFrom(Configuration $config): self
     {
-        return (new self())->setDelimiter($config->getKeyDelimiter())
-            ->setInterpolator($config->getInterpolator());
+        return $this->reset()
+            ->setInterpolator($config->getInterpolator())
+            ->setKeyDelimiter($this->getKeyDelimiterOf($config))
+            ->clearContent();
     }
 
+    private static function getKeyDelimiterOf(DelimitedKeys $config): ?string
+    {
+        return $config->getKeyDelimiter();
+    }
+
+    private function clearContent(): self
+    {
+        $this->clear();
+        return $this;
+    }
+
+    // ========================================================================
     /**
      * Reset the builder to its construction state
      *
@@ -68,8 +71,8 @@ final class TreeConfigBuilder
      */
     public function reset(): self
     {
-        return $this->setDelimiter()
-            ->setContent()
+        return $this->setKeyDelimiter()
+            ->clearContent()
             ->setInterpolator();
     }
 
@@ -95,25 +98,13 @@ final class TreeConfigBuilder
      * An access key is composed of multiple parts defining a path in the Configuration instance tree.
      * The delimiter is a character that permits to split a key in parts defining the access path.
      */
-    public function setDelimiter(string $delimiter = '.'): self
+    public function setKeyDelimiter(string $delimiter = '.'): self
     {
         $this->delimiter = $delimiter;
         return $this;
     }
 
-    /**
-     * Set the content of the Configuration instance to build.
-     * The content is merged to the instance with the Configuration::merge() method.
-     *
-     * @param array|\Traversable $content
-     *            The content
-     * @return self This buider
-     */
-    public function setContent(array|\Traversable $content = []): self
-    {
-        $this->content = $content;
-        return $this;
-    }
+    // ========================================================================
 
     /**
      * Build a new Configuration instance.
@@ -122,13 +113,6 @@ final class TreeConfigBuilder
      */
     public function build(): Configuration
     {
-        $ret = new _private\TreeConfig( //
-        $this->delimiter, //
-        $this->interpolator); //
-
-        if (! empty($this->content))
-            Configurations::mergeArrayRecursive($ret, $this->content);
-
-        return $ret;
+        return TreeConfig::rawCopy($this);
     }
 }

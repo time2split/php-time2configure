@@ -66,26 +66,29 @@ final class Configurations
      * The merge occurs recursively with the sub-data of the source.
      * If an array sub-data is a list, then the list is considered as a simple value and the recursion stop.
      */
-    public static function mergeTree(Configuration&DelimitedKeys $dest, array $tree): void
+    public static function mergeTree(Configuration&DelimitedKeys $dest, array ...$trees): void
     {
-        Arrays::linearArrayRecursive($dest, $tree, $dest->pathToOffset(...));
+        foreach ($trees as $tree)
+            Arrays::linearArrayRecursive($dest, $tree, $dest->pathToOffset(...));
     }
 
     /**
      * Copy the entries of a sequence data source into a Configuration instance destination,
      * that is copy all the key => value pairs from $src into $dest.
      */
-    public static function merge(Configuration $dest, iterable $src): void
+    public static function merge(Configuration $dest, iterable ...$sources): void
     {
-        foreach ($src as $k => $v)
-            $dest[$k] = $v;
+        foreach ($sources as $src)
+            foreach ($src as $k => $v)
+                $dest[$k] = $v;
     }
 
-    public static function union(Configuration $dest, iterable $src): void
+    public static function union(Configuration $dest, iterable ...$sources): void
     {
-        // @TODO maybe better with a method $dest->setIfAbsent()
-        foreach ($src as $k => $v)
-            if (! $dest->isPresent($k))
-                $dest[$k] = $v;
+        foreach ($sources as $src)
+            // @TODO maybe better with a method $dest->setIfAbsent()
+            foreach ($src as $k => $v)
+                if (! $dest->isPresent($k))
+                    $dest[$k] = $v;
     }
 }

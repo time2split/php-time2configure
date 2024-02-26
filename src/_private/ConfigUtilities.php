@@ -17,21 +17,21 @@ trait ConfigUtilities
         return \iterator_to_array($this);
     }
 
-    public function merge(iterable $config): static
+    public function merge(iterable ...$configs): static
     {
-        Configurations::merge($this, $config);
+        Configurations::merge($this, ...$configs);
         return $this;
     }
 
-    public function mergeTree(array $tree): static
+    public function mergeTree(array ...$trees): static
     {
-        Configurations::mergeTree($this, $tree);
+        Configurations::mergeTree($this, ...$trees);
         return $this;
     }
 
-    public function union(iterable $config): static
+    public function union(iterable ...$configs): static
     {
-        Configurations::union($this, $config);
+        Configurations::union($this, ...$configs);
         return $this;
     }
 }

@@ -18,20 +18,20 @@ final class ConfigurationTest extends TestCase
     {
         $mconfigs = \array_merge_recursive(...$configs);
         return [
-            'simple' => fn () => Configurations::fromTree($mconfigs),
+            'simple' => fn () => Configurations::ofTree($mconfigs),
             'builder' => fn () => Configurations::builder()->mergeTree($mconfigs),
             'childs' => function () use ($configs) {
                 $configs = \array_reverse($configs);
 
-                $config = Configurations::fromTree(\array_pop($configs));
+                $config = Configurations::ofTree(\array_pop($configs));
 
                 while (! empty($configs)) {
                     $config = Configurations::emptyChild($config);
-                    $config->merge(Configurations::fromTree(\array_pop($configs)));
+                    $config->merge(Configurations::ofTree(\array_pop($configs)));
                 }
                 return $config;
             },
-            'hierarchy' => fn () => Configurations::hierarchy(...\array_map(Configurations::fromTree(...), $configs))
+            'hierarchy' => fn () => Configurations::hierarchy(...\array_map(Configurations::ofTree(...), $configs))
         ];
     }
 
@@ -163,7 +163,7 @@ final class ConfigurationTest extends TestCase
         $baseConfig = $provide();
         $interpolator = $baseConfig->getInterpolator();
 
-        $copy = Configurations::from($baseConfig);
+        $copy = Configurations::copyOf($baseConfig);
         $clone = clone $baseConfig;
         $configs = [
             $baseConfig,
@@ -208,7 +208,7 @@ final class ConfigurationTest extends TestCase
         $cleared->clear();
         $clearedToArray = $cleared->toArray();
 
-        $empty = Configurations::emptyFrom($config);
+        $empty = Configurations::emptyCopyOf($config);
         $this->assertSame(0, \count($empty));
 
         foreach ([

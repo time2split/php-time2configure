@@ -3,6 +3,7 @@ declare(strict_types = 1);
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configurations;
+use Time2Split\Config\Interpolator;
 
 /**
  *
@@ -12,6 +13,9 @@ use Time2Split\Config\Configurations;
 trait ConfigUtilities
 {
 
+    // ========================================================================
+    // FLUENT
+    // ========================================================================
     public function toArray(): array
     {
         return \iterator_to_array($this);
@@ -33,5 +37,13 @@ trait ConfigUtilities
     {
         Configurations::union($this, ...$configs);
         return $this;
+    }
+
+    // ========================================================================
+    // NEW INSTANCE
+    // ========================================================================
+    public function resetInterpolator(Interpolator $interpolator): static
+    {
+        return Configurations::resetInterpolator($this, $interpolator);
     }
 }

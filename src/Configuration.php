@@ -11,9 +11,9 @@ interface Configuration extends TreeConfiguration
 
     public function toArray(): array;
 
-    public function mergeTree(array $tree): static;
+    public function mergeTree(array ...$trees): static;
 
-    public function merge(Configuration $config): static;
+    public function merge(iterable ...$configs): static;
 
-    public function union(Configuration $config): static;
+    public function union(iterable ...$configs): static;
 }

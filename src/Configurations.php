@@ -37,6 +37,29 @@ final class Configurations
     }
 
     // ========================================================================
+    // INTERPOLATION
+    // ========================================================================
+    private static function getSourceValueOf($value): mixed
+    {
+        if ($value instanceof Interpolation)
+            return $value->text;
+
+        return $value;
+    }
+
+    public static function resetInterpolator(Configuration $config, Interpolator $interpolator): Configuration
+    {
+        $builder = Configurations::builder()->emptyFrom($config)->setInterpolator($interpolator);
+
+        foreach ($config->getRawValueIterator() as $k => $v)
+            $builder[$k] = self::getSourceValueOf($v);
+
+        return $builder->build();
+    }
+
+    // ========================================================================
+    // HIERARCHY
+    // ========================================================================
 
     /**
      * Create a new Configuration instance that inherit all data from $parent.
@@ -59,6 +82,8 @@ final class Configurations
         return new TreeConfigHierarchy($parent, ...$childs);
     }
 
+    // ========================================================================
+    // MERGING
     // ========================================================================
 
     /**

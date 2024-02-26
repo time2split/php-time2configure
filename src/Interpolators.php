@@ -9,10 +9,10 @@ use Time2Split\Help\Classes\NotInstanciable;
 /**
  * Method Factories that proposes some default Interpolator implementations
  *
- * @author zuri
+ * @author Olivier Rodriguez (zuri)
  *
  */
-class Interpolators
+final class Interpolators
 {
     use NotInstanciable;
 

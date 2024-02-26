@@ -16,4 +16,6 @@ interface Configuration extends TreeConfiguration
     public function merge(iterable ...$configs): static;
 
     public function union(iterable ...$configs): static;
+
+    public function copy(?Interpolator $interpolator = null): self;
 }

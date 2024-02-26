@@ -6,6 +6,7 @@ use Time2Split\Config\_private\AbstractTreeConfig;
 use Time2Split\Config\_private\ConfigUtilities;
 use Time2Split\Config\_private\TreeConfig;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
+use Time2Split\Help\Traversables;
 
 /**
  * A builder of tree-shaped Configuration instances.
@@ -22,6 +23,7 @@ final class TreeConfigBuilder extends AbstractTreeConfig
 
     private function __construct()
     {
+        $this->interpolator = Interpolators::null();
         $this->reset();
     }
 
@@ -39,12 +41,41 @@ final class TreeConfigBuilder extends AbstractTreeConfig
     }
 
     // ========================================================================
-    public function from(Configuration $config): self
+    public function copyOf(Configuration $config, Interpolator $resetInterpolator = null): self
     {
-        return $this->emptyFrom($config)->merge($config);
+        $this->emptyCopyOf($config);
+
+        if (isset($resetInterpolator)) {
+
+            if ($resetInterpolator != $this->interpolator) {
+                $this->setInterpolator($resetInterpolator);
+                $this->merge(Traversables::mapValue($config->getRawValueIterator(), self::getBaseValue(...)));
+            } else
+                $this->rawCopy($config);
+        } else
+            $this->merge($config);
+
+        return $this;
     }
 
-    public function emptyFrom(Configuration $config): self
+    private static function getBaseValue($val)
+    {
+        return $val instanceof Interpolation ? $val->text : $val;
+    }
+
+    public function rawCopyOf(Configuration $config): self
+    {
+        $this->emptyCopyOf($config)->rawCopy($config);
+        return $this;
+    }
+
+    private function rawCopy(Configuration $config): void
+    {
+        foreach ($config->getRawValueIterator() as $k => $v)
+            $this[$k] = $v;
+    }
+
+    public function emptyCopyOf(Configuration $config): self
     {
         return $this->reset()
             ->setInterpolator($config->getInterpolator())
@@ -52,6 +83,7 @@ final class TreeConfigBuilder extends AbstractTreeConfig
             ->clearContent();
     }
 
+    // ========================================================================
     private static function getKeyDelimiterOf(DelimitedKeys $config): ?string
     {
         return $config->getKeyDelimiter();
@@ -88,7 +120,18 @@ final class TreeConfigBuilder extends AbstractTreeConfig
         if (! isset($interpolator))
             $interpolator = Interpolators::null();
 
+        if ($this->interpolator == $interpolator)
+            return $this;
+
         $this->interpolator = $interpolator;
+
+        if ($this->count() > 0) {
+            $it = $this->getRawValueIterator();
+            $it = Traversables::mapValue($it, self::getBaseValue(...));
+
+            foreach ($it as $k => $v)
+                $this[$k] = $v;
+        }
         return $this;
     }
 
@@ -113,6 +156,6 @@ final class TreeConfigBuilder extends AbstractTreeConfig
      */
     public function build(): Configuration
     {
-        return TreeConfig::rawCopy($this);
+        return TreeConfig::rawCopyOf($this);
     }
 }

@@ -56,7 +56,7 @@ final class TreeConfigTest extends TestCase
 
         // from
         $builder->setKeyDelimiter('/');
-        $builder->from($copy);
+        $builder->copyOf($copy);
         $this->assertTrue(Arrays::contentEquals($flat, $copy->toArray()), "flat equals copy 2");
     }
 }

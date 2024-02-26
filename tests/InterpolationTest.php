@@ -1,9 +1,8 @@
 <?php
 declare(strict_types = 1);
 use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Time2Split\Config\Configurations;
-use Time2Split\Help\Arrays;
+use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolators;
 
 /**
@@ -55,7 +54,7 @@ final class InterpolationTest extends TestCase
         $this->assertSame(\count($expect), $c, 'count');
 
         // Reset interpolator (null)
-        $rawConfig = $config->resetInterpolator(Interpolators::null());
+        $rawConfig = $config->copy(Interpolators::null());
         $expect = [
             'a' => $val,
             'b' => '${a}',
@@ -71,5 +70,66 @@ final class InterpolationTest extends TestCase
             $c ++;
         }
         $this->assertSame(\count($expect), $c, 'raw:count');
+    }
+
+    public function testCopyOf()
+    {
+        $base = [
+            'a' => 10,
+            'b' => '${a}'
+        ];
+        $intp = [
+            'a' => 10,
+            'b' => 10
+        ];
+
+        $configBase = Configurations::builder()->setInterpolator(Interpolators::recursive())
+            ->merge($base)
+            ->build();
+        $configCopy = $configBase->copy();
+
+        $this->assertTrue($configBase->getOptional('b', false)
+            ->get() instanceof Interpolation, 'base is Interpolation');
+        $this->assertFalse($configCopy->getOptional('b', false)
+            ->get() instanceof Interpolation, 'copy is not Interpolation');
+    }
+
+    public function testRawCopyOf()
+    {
+        $base = [
+            'a' => 10,
+            'b' => '${a}'
+        ];
+        $intp = [
+            'a' => 10,
+            'b' => 10
+        ];
+
+        $configBase = Configurations::builder()->setInterpolator(Interpolators::recursive())
+            ->merge($base)
+            ->build();
+        $configCopy = Configurations::rawCopyOf($configBase);
+
+        $this->assertTrue($configBase->getOptional('b', false)
+            ->get() instanceof Interpolation, 'base is Interpolation');
+        $this->assertTrue($configCopy->getOptional('b', false)
+            ->get() instanceof Interpolation, 'copy is not Interpolation');
+    }
+
+    public function testBuilderSetInterpolator()
+    {
+        $val = 10;
+        $text = '${a}';
+        $base = [
+            'a' => $val,
+            'b' => $text
+        ];
+        $builder = Configurations::builder()->merge($base);
+
+        $this->assertSame($text, $builder['b'], 'null');
+        $builder->setInterpolator(Interpolators::recursive());
+        $this->assertSame($val, $builder['b'], 'recursive');
+        $builder->setInterpolator();
+        $this->assertSame($text, $builder['b'], 'reset null');
     }
 }

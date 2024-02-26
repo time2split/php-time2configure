@@ -16,7 +16,7 @@ final class TreeConfig extends AbstractTreeConfig
     use ConfigUtilities;
 
     // ========================================================================
-    public static function rawCopy(Configuration&DelimitedKeys $config)
+    public static function rawCopyOf(Configuration&DelimitedKeys $config)
     {
         $delimiter = $config->getKeyDelimiter();
         $interpolator = $config->getInterpolator();
@@ -24,6 +24,11 @@ final class TreeConfig extends AbstractTreeConfig
         if ($config instanceof TreeStorage)
             return new self($delimiter, $interpolator, $config->getTreeStorage());
 
-        throw new \Exception('$config must be a TreeStorage');
+        $ret = new self($delimiter, $interpolator);
+
+        foreach ($config->getRawValueIterator() as $k => $v)
+            $ret[$k] = $v;
+
+        return $ret;
     }
 }

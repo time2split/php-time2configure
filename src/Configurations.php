@@ -21,40 +21,27 @@ final class Configurations
         return TreeConfigBuilder::_private_builder();
     }
 
-    public static function from(Configuration $config): Configuration
-    {
-        return self::builder()->from($config)->build();
-    }
-
-    public static function emptyFrom(Configuration $config): Configuration
-    {
-        return self::builder()->emptyFrom($config)->build();
-    }
-
-    public static function fromTree(array $tree): Configuration
-    {
-        return self::builder()->mergeTree($tree)->build();
-    }
-
     // ========================================================================
-    // INTERPOLATION
+    // COPY
     // ========================================================================
-    private static function getSourceValueOf($value): mixed
+    public static function copyOf(Configuration $config, Interpolator $interpolator = null): Configuration
     {
-        if ($value instanceof Interpolation)
-            return $value->text;
-
-        return $value;
+        return self::builder()->copyOf($config, $interpolator)->build();
     }
 
-    public static function resetInterpolator(Configuration $config, Interpolator $interpolator): Configuration
+    public static function rawCopyOf(Configuration $config): Configuration
     {
-        $builder = Configurations::builder()->emptyFrom($config)->setInterpolator($interpolator);
+        return self::builder()->rawCopyOf($config)->build();
+    }
 
-        foreach ($config->getRawValueIterator() as $k => $v)
-            $builder[$k] = self::getSourceValueOf($v);
+    public static function emptyCopyOf(Configuration $config): Configuration
+    {
+        return self::builder()->emptyCopyOf($config)->build();
+    }
 
-        return $builder->build();
+    public static function ofTree(array ...$trees): Configuration
+    {
+        return self::builder()->mergeTree(...$trees)->build();
     }
 
     // ========================================================================
@@ -68,7 +55,7 @@ final class Configurations
      */
     public static function emptyChild(Configuration $parent): Configuration
     {
-        return self::hierarchy($parent, self::emptyFrom($parent));
+        return self::hierarchy($parent, self::emptyCopyOf($parent));
     }
 
     public static function hierarchy(Configuration $parent, Configuration ...$childs): Configuration

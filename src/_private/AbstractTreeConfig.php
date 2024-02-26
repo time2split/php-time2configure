@@ -119,14 +119,6 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
         return $this->interpolator->execute($value->compilation, $this);
     }
 
-    private function getSourceValueOf($value): mixed
-    {
-        if ($value instanceof Interpolation)
-            return $value->text;
-
-        return $value;
-    }
-
     // ========================================================================
     private function updateOnUnexists(&$data, $k, $v): void
     {

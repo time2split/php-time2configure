@@ -165,12 +165,13 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
     }
 
     // ========================================================================
-    public function getIterator(): \Generator
+    private function _getIterator(bool $raw): \Generator
     {
         $cache = [];
+        $getIterator = $raw ? fn ($c) => $c->getRawValueIterator() : fn ($c) => $c;
 
         foreach ($this->rlist as $config) {
-            foreach ($config as $k => $v) {
+            foreach ($getIterator($config) as $k => $v) {
 
                 if (! isset($cache[$k])) {
                     $cache[$k] = true;
@@ -178,5 +179,15 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
                 }
             }
         }
+    }
+
+    public function getIterator(): \Generator
+    {
+        return $this->_getIterator(false);
+    }
+
+    public function getRawValueIterator(): \Generator
+    {
+        return $this->_getIterator(true);
     }
 }

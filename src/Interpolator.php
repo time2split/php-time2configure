@@ -4,12 +4,13 @@ namespace Time2Split\Config;
 use Time2Split\Help\Optional;
 
 /**
- * An Interpolator permits to transform a simple value to a more complex operation.
+ * Allows to transform a simple value to a more complex operation.
  *
- * For instance there is a text Interpolator implementation (Interpolators::recursive()) that parmits to detect ${key} element in a text
+ * For instance, there is a text Interpolator implementation (Interpolators::recursive()) that parmits to detect ${key} element in a text
  * and substitute it by the $config[$key] value of the Configuration instance.
  *
- * @author zuri
+ * @author Olivier Rodriguez (zuri)
+ *
  */
 interface Interpolator
 {

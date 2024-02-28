@@ -147,14 +147,7 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
     private function getWithoutInterpolation($offset): mixed
     {
         $offset = $this->makeUserPath($offset);
-        $val = $this->followOffset($offset);
-
-        if ($val === TreeConfigSpecial::absent)
-            return TreeConfigSpecial::absent;
-        if (\is_array($val) && ! \array_is_list($val))
-            return $val[''];
-
-        return $val;
+        return $this->followOffset($offset);
     }
 
     private function get($offset): mixed

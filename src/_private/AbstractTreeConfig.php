@@ -139,7 +139,7 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
         $compilation = $this->interpolator->compile($value);
 
         if ($compilation->isPresent())
-            $value = new Interpolation($value, $compilation->get());
+            $value = new Interpolation((string) $value, $compilation->get());
 
         $this->setStoredValue($offset, $value);
     }

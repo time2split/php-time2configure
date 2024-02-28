@@ -8,6 +8,7 @@ use Time2Split\Config\Interpolator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\_private\TreeConfig\TreeStorage;
 use Time2Split\Help\Optional;
+use Time2Split\Help\Arrays;
 
 /**
  *
@@ -183,6 +184,18 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
         if (\is_array($val) && \array_key_exists('', $val)) {
             $this->count --;
             unset($val['']);
+        }
+    }
+
+    public function removeNode($offset): void
+    {
+        $path = $this->explodePath($offset);
+        $last = \array_pop($path);
+        $val = &$this->followPath($path);
+
+        if (\is_array($val) && \array_key_exists($last, $val)) {
+            $this->count -= Arrays::nb_branches($val[$last]);
+            unset($val[$last]);
         }
     }
 

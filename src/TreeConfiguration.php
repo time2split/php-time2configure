@@ -24,4 +24,6 @@ interface TreeConfiguration extends BaseConfiguration
      * Select some sub-trees and preserve also their parent branch to the root node.
      */
     public function select($offset, ...$offsets): static;
+
+    public function removeNode($offsets): void;
 }

@@ -68,6 +68,9 @@ final class TreeConfigTest extends TestCase
             ],
             [
                 fn () => Configurations::builder()->build()
+            ],
+            [
+                fn () => Configurations::emptyChild(Configurations::builder()->build())
             ]
         ];
     }
@@ -93,5 +96,49 @@ final class TreeConfigTest extends TestCase
 
         $this->assertFalse(isset($tree['x']), '!isset x');
         $this->assertFalse($tree->isPresent('x'), '!isPresent x');
+    }
+
+    #[DataProvider('treeProvider')]
+    public function testUnset(\Closure $treeProvider): void
+    {
+        $tree = $treeProvider();
+
+        $tree['a'] = 0;
+        $tree['a.a'] = 1;
+
+        $this->assertTrue(isset($tree['a']), 'isset a');
+        $this->assertTrue(isset($tree['a.a']), 'isset a.a');
+        $this->assertSame(2, \count($tree));
+        {
+            unset($tree['a']);
+            $this->assertSame(1, \count($tree));
+
+            $this->assertFalse(isset($tree['a']), 'unset: !isset a');
+            $this->assertFalse($tree->isPresent('a'), 'unset: !isPresent a');
+            $this->assertSame(null, $tree['a'], 'unset: null === a');
+
+            $this->assertTrue(isset($tree['a.a']), 'unset: isset a.a 2');
+        }
+        {
+            $tree->removeNode('a');
+            $this->assertSame(0, \count($tree));
+
+            $this->assertFalse(isset($tree['a']), 'unsetNode: !isset a');
+            $this->assertFalse($tree->isPresent('a'), 'unsetNode: !isPresent a');
+            $this->assertSame(null, $tree['a'], 'unsetNode: null === a');
+
+            $this->assertFalse(isset($tree['a.a']), 'unsetNode: !isset a.a');
+            $this->assertFalse($tree->isPresent('a.a'), 'unsetNode: !isPresent a.a');
+            $this->assertSame(null, $tree['a.a'], 'unsetNode: null === a.a');
+        }
+
+        $tree['a.a'] = 0;
+        $this->assertSame(1, \count($tree));
+        $tree['a.b'] = 0;
+        $this->assertSame(2, \count($tree));
+        $tree['b'] = 0;
+        $this->assertSame(3, \count($tree));
+        $tree->removeNode('a');
+        $this->assertSame(1, \count($tree));
     }
 }

@@ -20,4 +20,6 @@ interface Configuration extends TreeConfiguration
     public function copy(?Interpolator $interpolator = null): self;
 
     public function unsetFluent(...$offsets): static;
+
+    public function removeNodeFluent(...$offsets): static;
 }

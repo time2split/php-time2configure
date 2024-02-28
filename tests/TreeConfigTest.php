@@ -59,4 +59,39 @@ final class TreeConfigTest extends TestCase
         $builder->copyOf($copy);
         $this->assertTrue(Arrays::contentEquals($flat, $copy->toArray()), "flat equals copy 2");
     }
+
+    public static function treeProvider(): array
+    {
+        return [
+            [
+                fn () => Configurations::builder()
+            ],
+            [
+                fn () => Configurations::builder()->build()
+            ]
+        ];
+    }
+
+    #[DataProvider('treeProvider')]
+    public function testIsset(\Closure $treeProvider): void
+    {
+        $tree = $treeProvider();
+
+        $tree['a'] = null;
+        $tree['b'] = 0;
+        $tree['c.d'] = 0;
+        $this->assertSame(3, \count($tree));
+
+        $this->assertFalse(isset($tree['a']), '!isset a');
+        $this->assertTrue($tree->isPresent('a'), 'isPresent a');
+
+        $this->assertTrue(isset($tree['b']), 'isset b');
+        $this->assertTrue($tree->isPresent('b'), 'isPresent b');
+
+        $this->assertFalse(isset($tree['c']), '!isset c');
+        $this->assertFalse($tree->isPresent('c'), '!isPresent c');
+
+        $this->assertFalse(isset($tree['x']), '!isset x');
+        $this->assertFalse($tree->isPresent('x'), '!isPresent x');
+    }
 }

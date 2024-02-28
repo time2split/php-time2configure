@@ -41,4 +41,12 @@ trait ConfigUtilities
     {
         return Configurations::copyOf($this, $interpolator);
     }
+
+    public function unsetFluent(...$offsets): static
+    {
+        foreach ($offsets as $offset)
+            unset($this[$offset]);
+
+        return $this;
+    }
 }

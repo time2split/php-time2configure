@@ -178,12 +178,11 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
     private function unset($offset): void
     {
         $path = $this->explodePath($offset);
-        $last = \array_pop($path);
         $val = &$this->followPath($path);
 
-        if ($val !== TreeConfigSpecial::absent) {
+        if (\is_array($val) && \array_key_exists('', $val)) {
             $this->count --;
-            unset($val[$last]);
+            unset($val['']);
         }
     }
 
@@ -248,7 +247,8 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
     // ========================================================================
     public function offsetExists($offset): bool
     {
-        return $this->isPresent($offset);
+        $opt = $this->getOptional($offset);
+        return $opt->isPresent() && null !== $opt->get();
     }
 
     public function offsetGet($offset): mixed

@@ -164,6 +164,11 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
         $this->last()->offsetUnset($offset);
     }
 
+    public function removeNode($offset): void
+    {
+        $this->last()->removeNode($offset);
+    }
+
     // ========================================================================
     private function _getIterator(bool $raw): \Generator
     {

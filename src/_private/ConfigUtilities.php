@@ -49,4 +49,12 @@ trait ConfigUtilities
 
         return $this;
     }
+
+    public function removeNodeFluent(...$offsets): static
+    {
+        foreach ($offsets as $offset)
+            $this->removeNode($offset);
+
+        return $this;
+    }
 }

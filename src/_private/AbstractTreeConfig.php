@@ -176,6 +176,11 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
         return $this->getWithoutInterpolation($offset) !== TreeConfigSpecial::absent;
     }
 
+    public function nodeIsPresent($offset): bool
+    {
+        return $this->followOffset($offset) !== TreeConfigSpecial::absent;
+    }
+
     private function unset($offset): void
     {
         $path = $this->explodePath($offset);
@@ -221,6 +226,15 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
     }
 
     // ========================================================================
+    public function subTreeView($offset): static
+    {
+        $ref = &$this->getReference($offset);
+        $ref = [];
+        $ret = clone $this;
+        $ret->storage = &$ref;
+        return $ret;
+    }
+
     public function subTreeCopy($offset): static
     {
         $val = $this->followOffset($offset);

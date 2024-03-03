@@ -49,7 +49,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     public function getOptional($offset, bool $interpolate = true): Optional;
 
     /**
-     * Whether an offset is present (the value may be null).
+     * Whether an offset is present with a value (the value may be null).
      *
      * @param mixed $offset
      *            An offset to check for.

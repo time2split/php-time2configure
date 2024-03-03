@@ -285,11 +285,10 @@ final class ConfigurationTest extends TestCase
     }
 
     #[DataProvider('subConfigProvider')]
-    public function testSubConfig(array $args): void
+    public function testSubTreeCopy(array $args): void
     {
         $configs = $args['configs'];
         $sub = $args['sub'];
-        $merged = \array_merge(...$configs);
         $providers = self::getConfigProviders(...$configs);
 
         foreach ($providers as $provider) {
@@ -299,7 +298,7 @@ final class ConfigurationTest extends TestCase
                 $k,
                 $subResult
             ]) {
-                $subConfig = $config->subConfig($k);
+                $subConfig = $config->subTreeCopy($k);
                 $this->assertSame($subResult, $subConfig->toArray());
             }
         }
@@ -363,7 +362,6 @@ final class ConfigurationTest extends TestCase
     #[DataProvider('selectProvider')]
     public function testSelect(array $configs, array $sub): void
     {
-        $merged = \array_merge(...$configs);
         $providers = self::getConfigProviders(...$configs);
 
         foreach ($providers as $provider) {
@@ -373,7 +371,7 @@ final class ConfigurationTest extends TestCase
                 $k,
                 $subResult
             ]) {
-                $subConfig = $config->select($k);
+                $subConfig = $config->copyBranches($k);
                 $this->assertSame($subResult, $subConfig->toArray(), "select $k");
             }
         }

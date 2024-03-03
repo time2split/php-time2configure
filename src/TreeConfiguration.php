@@ -16,14 +16,21 @@ interface TreeConfiguration extends BaseConfiguration
 {
 
     /**
-     * Select a sub-tree configuration.
+     * Get a sub-tree copy.
+     *
+     * @return static A new instance of the configuration containing the sub-tree.
      */
-    public function subConfig($offset): static;
+    public function subTreeCopy($offset): static;
 
     /**
-     * Select some sub-trees and preserve also their parent branch to the root node.
+     * Get some branches of the configuration.
+     *
+     * @return static A new instance of the configuration containing the selected nodes branches and their sub-tree.
      */
-    public function select($offset, ...$offsets): static;
+    public function copyBranches($offset, ...$offsets): static;
 
-    public function removeNode($offsets): void;
+    /**
+     * Remove a node from the configuration.
+     */
+    public function removeNode($offset): void;
 }

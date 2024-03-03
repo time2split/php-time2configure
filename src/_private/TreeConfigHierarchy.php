@@ -77,20 +77,20 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
     }
 
     // ========================================================================
-    public function subConfig($offset): static
+    public function subTreeCopy($offset): static
     {
         $sub = [];
         foreach ($this->rlist as $c)
-            $sub[] = $c->subConfig($offset);
+            $sub[] = $c->subTreeCopy($offset);
 
         return new self(...$sub);
     }
 
-    public function select(...$offset): static
+    public function copyBranches(...$offset): static
     {
         $sub = [];
         foreach ($this->rlist as $c)
-            $sub[] = $c->select(...$offset);
+            $sub[] = $c->copyBranches(...$offset);
 
         return new self(...$sub);
     }

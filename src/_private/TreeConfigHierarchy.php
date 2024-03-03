@@ -77,6 +77,11 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
     }
 
     // ========================================================================
+    public function subTreeView($offset): static
+    {
+        return $this->last()->subTreeView($offset);
+    }
+
     public function subTreeCopy($offset): static
     {
         $sub = [];
@@ -128,6 +133,16 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
         foreach ($this->rlist as $c) {
 
             if ($c->isPresent($offset))
+                return true;
+        }
+        return false;
+    }
+
+    public function nodeIsPresent($offset): bool
+    {
+        foreach ($this->rlist as $c) {
+
+            if ($c->nodeIsPresent($offset))
                 return true;
         }
         return false;

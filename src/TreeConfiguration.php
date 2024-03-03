@@ -16,11 +16,27 @@ interface TreeConfiguration extends BaseConfiguration
 {
 
     /**
+     * Whether a node is present in the tree.
+     *
+     * @param mixed $offset
+     *            An offset to check for.
+     * @return bool Returns true on success or false on failure.
+     */
+    public function nodeIsPresent($offset): bool;
+
+    /**
      * Get a sub-tree copy.
      *
      * @return static A new instance of the configuration containing the sub-tree.
      */
     public function subTreeCopy($offset): static;
+
+    /**
+     * Return a view on a sub-tree.
+     *
+     * @return static A configuration that reference the content of the sub-tree of the initial configuration.
+     */
+    public function subTreeView($offset): static;
 
     /**
      * Get some branches of the configuration.

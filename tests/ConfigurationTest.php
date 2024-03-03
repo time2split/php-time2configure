@@ -376,4 +376,29 @@ final class ConfigurationTest extends TestCase
             }
         }
     }
+
+    public static function subTreeViewProvider(): \Generator
+    {
+        return (function () {
+            foreach (self::getConfigProviders([]) as $k => $provider)
+                yield $k => [
+                    $provider
+                ];
+        })();
+    }
+
+    #[DataProvider('subTreeViewProvider')]
+    public function testSubTreeView(\Closure $provider): void
+    {
+        $config = $provider();
+
+        $view = $config->subTreeView('a');
+
+        $this->assertFalse($config->isPresent('a'));
+        $this->assertTrue($config->nodeIsPresent('a'));
+
+        $view['b'] = 0;
+
+        $this->assertSame(0, $config['a.b']);
+    }
 }

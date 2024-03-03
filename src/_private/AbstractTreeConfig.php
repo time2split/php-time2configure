@@ -221,7 +221,7 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
     }
 
     // ========================================================================
-    public function subConfig($offset): static
+    public function subTreeCopy($offset): static
     {
         $val = $this->followOffset($offset);
 
@@ -234,7 +234,7 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
         return $ret;
     }
 
-    public function select($offset, ...$offsets): static
+    public function copyBranches($offset, ...$offsets): static
     {
         \array_unshift($offsets, $offset);
         $offsets = $this->deduplicateOffsets($offsets);

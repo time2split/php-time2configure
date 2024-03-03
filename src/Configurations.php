@@ -6,6 +6,7 @@ use Time2Split\Config\_private\TreeConfigHierarchy;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Arrays;
 use Time2Split\Help\Classes\NotInstanciable;
+use Time2Split\Config\_private\Decorator\UnmodifiableDecorator;
 
 /**
  *
@@ -19,6 +20,17 @@ final class Configurations
     public static function builder(): TreeConfigBuilder
     {
         return TreeConfigBuilder::_private_builder();
+    }
+
+    // ========================================================================
+    // DECORATE
+    // ========================================================================
+    public static function unmodifiable(Configuration $config): Configuration
+    {
+        if ($config instanceof UnmodifiableDecorator)
+            return $config;
+
+        return new UnmodifiableDecorator($config);
     }
 
     // ========================================================================

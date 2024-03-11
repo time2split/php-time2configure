@@ -17,6 +17,11 @@ final class Configurations
 {
     use NotInstanciable;
 
+    /**
+     * Get a new TreeConfigBuilder instance.
+     *
+     * @return TreeConfigBuilder A new instance.
+     */
     public static function builder(): TreeConfigBuilder
     {
         return TreeConfigBuilder::_private_builder();
@@ -25,6 +30,17 @@ final class Configurations
     // ========================================================================
     // DECORATE
     // ========================================================================
+
+    /**
+     * Make a configuration unmodifiable.
+     *
+     * The unmodifiable behaviour is implemented as a decorator wrapping around the the base configuration,
+     * that is if the base configuration may have updates outside the unmodifiable decorator.
+     *
+     * @param Configuration $config
+     *            The configuration to wrap unmodifiable.
+     * @return Configuration The unmodifiable instance.
+     */
     public static function unmodifiable(Configuration $config): Configuration
     {
         if ($config instanceof UnmodifiableDecorator)
@@ -36,21 +52,57 @@ final class Configurations
     // ========================================================================
     // COPY
     // ========================================================================
+    // TreeConfigBuilder facades
+
+    /**
+     * Make a copy of the configuration tree.
+     *
+     * @param Configuration $config
+     *            The configuration to copy from.
+     * @param Interpolator $resetInterpolator
+     *            If not set (ie. null) the copy will contains the interpolated value of the configuration tree.
+     *            If set the copy will use this interpolator on the raw base value to create a new interpolated configuration.$this
+     *            Note that the interpolator may be the same as $config, in that case it means that the base interpolation is conserved.
+     * @return self A new Configuration instance.
+     */
     public static function copyOf(Configuration $config, Interpolator $interpolator = null): Configuration
     {
         return self::builder()->copyOf($config, $interpolator)->build();
     }
 
+    /**
+     * Make a copy conserving the interpolation.
+     *
+     * @param Configuration $config
+     *            The configuration to copy from.
+     * @return self A new Configuration instance.
+     */
     public static function rawCopyOf(Configuration $config): Configuration
     {
         return self::builder()->rawCopyOf($config)->build();
     }
 
+    /**
+     * Make a copy instance conserving the interpolator but not the values.
+     *
+     * @param Configuration $config
+     *            The configuration to copy from.
+     * @return self A new Configuration instance.
+     */
     public static function emptyCopyOf(Configuration $config): Configuration
     {
         return self::builder()->emptyCopyOf($config)->build();
     }
 
+    /**
+     * Make a configuration from trees-structured arrays.
+     *
+     * If some trees share some same branches then the last tree branches override the previous ones.
+     *
+     * @param array ...$trees
+     *            The trees to consider.
+     * @return Configuration A new Configuration instance.
+     */
     public static function ofTree(array ...$trees): Configuration
     {
         return self::builder()->mergeTree(...$trees)->build();
@@ -64,12 +116,32 @@ final class Configurations
      * Create a new Configuration instance that inherit all data from $parent.
      * The $parent instance defines default values for the new Configuration instance that always exist.
      * The default values can be shadowed by that in the new instance.
+     *
+     * Note that the parent instance is assigned as it (ie. reference), that is it may always be modified outside the hierarchy instance.
+     *
+     * @param Configuration $parent
+     *            The parent configuration to use.
+     * @return Configuration A new Configuration instance where the parent tree is not modifiable.
      */
     public static function emptyChild(Configuration $parent): Configuration
     {
         return self::hierarchy($parent, self::emptyCopyOf($parent));
     }
 
+    /**
+     * Create a new Configuration instance that inherit all data from a sequence of parents.
+     * The [$parent,...$childs] instances defines default values for the new Configuration instance that always exist.
+     * The default values can be shadowed by that in the new instance.
+     *
+     * The order of the parents in the sequence is signifiant: the last parents shadowed the previous in case of common branches.
+     * Note that the parents instances are assigned as it (ie. references), that is they may always be modified outside the hierarchy instance.
+     *
+     * @param Configuration $parent
+     *            The first parent of the sequence.
+     * @param Configuration ...$childs
+     *            More parents of the sequence.
+     * @return Configuration A new Configuration hierarchy instance.
+     */
     public static function hierarchy(Configuration $parent, Configuration ...$childs): Configuration
     {
         if (empty($childs))
@@ -99,6 +171,7 @@ final class Configurations
     /**
      * Copy the entries of a sequence data source into a Configuration instance destination,
      * that is copy all the key => value pairs from $src into $dest.
+     * If an entry to copy is already present in the configuration then the entry is copied and override the previous entry.
      */
     public static function merge(Configuration $dest, iterable ...$sources): void
     {
@@ -107,6 +180,11 @@ final class Configurations
                 $dest[$k] = $v;
     }
 
+    /**
+     * Copy the entries of a sequence data source into a Configuration instance destination,
+     * that is copy all the key => value pairs from $src into $dest.
+     * If an entry to copy is already present in the configuration then the entry is not copied, the first entry stay in place.
+     */
     public static function union(Configuration $dest, iterable ...$sources): void
     {
         foreach ($sources as $src)

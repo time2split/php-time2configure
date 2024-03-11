@@ -4,7 +4,7 @@ namespace Time2Split\Config;
 /**
  * A TreeConfiguration has a tree-shaped structure.
  * An entry access is done with a single key (eg.
- * $config[$key]) representing a path in the tree.
+ * $config[$key]) representing a path (ie. a branch) in the tree.
  *
  * Each part of the path is delimited by an internal delimiter character.
  * Each node of the tree can be associate with a value.

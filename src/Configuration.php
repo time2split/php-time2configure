@@ -2,7 +2,7 @@
 namespace Time2Split\Config;
 
 /**
- * Extends the BaseConfiguration with utilities methods.
+ * Extends the TreeConfiguration with utilities methods mainly copied from Configurations.
  *
  * @author Olivier Rodriguez (zuri)
  */

@@ -7,7 +7,7 @@ use Time2Split\Help\Optional;
 use Time2Split\Help\Classes\NotInstanciable;
 
 /**
- * Method Factories that proposes some default Interpolator implementations
+ * Method Factories that expose some Interpolator implementations.
  *
  * @author Olivier Rodriguez (zuri)
  *
@@ -20,6 +20,8 @@ final class Interpolators
 
     /**
      * Corresponds to the null Pattern implementation, that is an Interpolator doing nothing.
+     *
+     * Note that the strict equals operator === can be used to test if an interpolator is a null() one.
      *
      * @return Interpolator
      */
@@ -47,7 +49,9 @@ final class Interpolators
      * If a substitution contains more interpolations, then they are recursively processed.
      * The Interpolator can't handles cycles: it will process forever (until php detect a too deep call stack).
      *
-     * @return Interpolator The interpolator
+     * Note that the strict equals operator === can be used to test if an interpolator is a recursive() one.
+     *
+     * @return Interpolator The interpolator.
      */
     public static function recursive(): Interpolator
     {

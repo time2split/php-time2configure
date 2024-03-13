@@ -1,7 +1,9 @@
 <?php
 declare(strict_types = 1);
-use PHPUnit\Framework\Attributes\DataProvider;
+namespace Time2Split\Config\Tests;
+
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Time2Split\Config\Configurations;
 use Time2Split\Help\Arrays;
 use Time2Split\Help\Traversables;
@@ -173,7 +175,6 @@ final class ConfigurationTest extends TestCase
 
         foreach ($configs as $config) {
             $toArray = $config->toArray();
-            $null = \array_fill(0, \count($toArray), null);
 
             $this->assertSame($interpolator, $config->getInterpolator());
             // Values
@@ -398,6 +399,7 @@ final class ConfigurationTest extends TestCase
         $this->assertTrue($config->nodeIsPresent('a'));
 
         $view['b'] = 0;
+        unset($view);
 
         $this->assertSame(0, $config['a.b']);
     }

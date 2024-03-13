@@ -2,11 +2,18 @@
 declare(strict_types = 1);
 namespace Time2Split\Config;
 
+use Time2Split\Config\Entry\Consumer;
+use Time2Split\Config\Entry\MapKey;
+use Time2Split\Config\Entry\MapValue;
 use Time2Split\Config\_private\TreeConfigHierarchy;
+use Time2Split\Config\_private\Decorator\ConsumerDecorator;
+use Time2Split\Config\_private\Decorator\MapDecorator;
+use Time2Split\Config\_private\Decorator\UnmodifiableDecorator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Arrays;
 use Time2Split\Help\Classes\NotInstanciable;
-use Time2Split\Config\_private\Decorator\UnmodifiableDecorator;
+use Time2Split\Config\Entry\Map;
+use Time2Split\Help\Optional;
 
 /**
  *
@@ -192,5 +199,143 @@ final class Configurations
             foreach ($src as $k => $v)
                 if (! $dest->isPresent($k))
                     $dest[$k] = $v;
+    }
+
+    // ========================================================================
+    // CONSUMING
+    // ========================================================================
+
+    /**
+     * Decorate a configuration to do an action when a value is read (only with interpolation).
+     *
+     * @param Configuration $config
+     *            The base configuration to decorate.
+     * @param Consumer $do
+     *            The action to do.
+     * @return Configuration A new configuration instance wrapping the base configuration.
+     */
+    public static function doOnRead(Configuration $config, Consumer $do): Configuration
+    {
+        return new class($config, $do) extends ConsumerDecorator {
+
+            public function offsetGet($key): mixed
+            {
+                $this->consumer->consume($this->decorate, $key, $v = $this->decorate[$key]);
+                return $v;
+            }
+
+            public function getIterator(): \Generator
+            {
+                foreach ($this->decorate as $k => $v) {
+                    $this->offsetGet($k);
+                    yield $k => $v;
+                }
+            }
+
+            public function getOptional($offset, bool $interpolate = true): Optional
+            {
+                $item = $this->decorate->getOptional($offset, $interpolate);
+
+                if ($interpolate)
+                    $this->consumer->consume($this->decorate, $offset, $item->orElse(null));
+
+                return $item;
+            }
+        };
+    }
+
+    // ========================================================================
+    // MAPPING
+    // ========================================================================
+
+    /**
+     * Decorate a configuration to do an mapping when a value is read (only with interpolation).
+     *
+     * @param Configuration $config
+     *            The base configuration to decorate.
+     * @param Map $map
+     *            The mapping to do.
+     * @return Configuration A new configuration instance wrapping the base configuration.
+     */
+    public static function mapOnRead(Configuration $config, MapValue $map): Configuration
+    {
+        return new class($config, $map) extends MapDecorator {
+
+            public function offsetGet($key): mixed
+            {
+                return $this->map->map($this->decorate, $key, $this->decorate[$key])->value;
+            }
+
+            public function getIterator(): \Generator
+            {
+                foreach ($this->decorate as $k => $notUsed)
+                    yield $k => $this->offsetGet($k);
+
+                unset($notUsed);
+            }
+
+            public function getOptional($key, bool $interpolate = true): Optional
+            {
+                $item = $this->decorate->getOptional($key, $interpolate);
+
+                if (! $interpolate)
+                    return $item;
+
+                $value = $item->orElse(null);
+                $entry = $this->map->map($this->decorate, $key, $value);
+                return Optional::ofNullable($entry->value);
+            }
+        };
+    }
+
+    /**
+     * Decorate a configuration to do a mapping on key => value entry before their assignment.
+     *
+     * @param Configuration $config
+     *            The base configuration to decorate.
+     * @param MapKey|MapValue $map
+     *            The mapping to do on an entry before its storage.
+     * @return Configuration A new configuration instance wrapping the base configuration.
+     */
+    public static function mapOnSet(Configuration $config, Map $map): Configuration
+    {
+        return new class($config, $map) extends MapDecorator {
+
+            public function offsetSet($key, $value): void
+            {
+                $entry = $this->map->map($this->decorate, $key, $value);
+                $this->decorate[$entry->key] = $entry->value;
+            }
+        };
+    }
+
+    /**
+     * Decorate a configuration to do an action when an entry is unset (the entry may be absent).
+     *
+     * @param Configuration $config
+     *            The base configuration to decorate.
+     * @param Consumer $do
+     *            The mapping to do.
+     * @return Configuration A new configuration instance wrapping the base configuration.
+     */
+    public static function doOnUnset(Configuration $config, Consumer $do): Configuration
+    {
+        return new class($config, $do) extends ConsumerDecorator {
+
+            public function offsetUnset($key): void
+            {
+                $this->consumer->consume($this->decorate, $key, $this->decorate[$key]);
+                parent::offsetUnset($key);
+            }
+
+            public function clear(): void
+            {
+                foreach ($this->decorate as $key => $notUsed)
+                    $this->consumer->consume($this->decorate, $key, $this->decorate[$key]);
+
+                $this->decorate->clear();
+                unset($notUsed);
+            }
+        };
     }
 }

@@ -6,6 +6,7 @@ use Time2Split\Config\Exception\UnmodifiableException;
 
 /**
  *
+ * @internal
  * @author Olivier Rodriguez (zuri)
  *
  */

@@ -1,5 +1,7 @@
 <?php
 declare(strict_types = 1);
+namespace Time2Split\Config\Tests;
+
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Time2Split\Config\Configurations;

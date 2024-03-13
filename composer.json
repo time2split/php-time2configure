@@ -19,6 +19,11 @@
 			"Time2Split\\Config\\": "src"
 		}
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"Time2Split\\Config\\Tests\\": "tests"
+		}
+	},
 	"repositories": [
 		{
 			"type": "vcs",

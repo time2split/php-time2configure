@@ -1,5 +1,7 @@
 <?php
 declare(strict_types = 1);
+namespace Time2Split\Config\Tests;
+
 use PHPUnit\Framework\TestCase;
 use Time2Split\Config\Configurations;
 use Time2Split\Config\Interpolation;

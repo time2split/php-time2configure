@@ -165,11 +165,11 @@ final class ConfigurationTest extends TestCase
         $baseConfig = $provide();
         $interpolator = $baseConfig->getInterpolator();
 
-        $copy = Configurations::copyOf($baseConfig);
         $clone = clone $baseConfig;
         $configs = [
             $baseConfig,
-            $copy,
+            $baseConfig->copy(),
+            $baseConfig->copy($baseConfig->getInterpolator()),
             $clone
         ];
 
@@ -209,7 +209,7 @@ final class ConfigurationTest extends TestCase
         $cleared->clear();
         $clearedToArray = $cleared->toArray();
 
-        $empty = Configurations::emptyCopyOf($config);
+        $empty = Configurations::emptyTreeCopyOf($config);
         $this->assertSame(0, \count($empty));
 
         foreach ([

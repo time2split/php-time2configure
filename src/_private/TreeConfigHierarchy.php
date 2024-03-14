@@ -15,9 +15,8 @@ use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
  * @author Olivier Rodriguez (zuri)
  *
  */
-final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, DelimitedKeys
+final class TreeConfigHierarchy extends Configuration implements \IteratorAggregate, DelimitedKeys
 {
-    use ConfigUtilities;
 
     /**
      * The first element is the last TreeConfig added.
@@ -48,6 +47,19 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
     {
         $last = $this->rlist[0];
         $this->rlist[0] = clone $last;
+    }
+
+    public function copy(?Interpolator $interpolator = null): static
+    {
+        $ret = new self(...$this->rlist);
+        $ref = &$ret->rlist[0];
+        $ref = $ref->copy($interpolator);
+
+        for ($i = 1, $c = \count($this->rlist); $i < $c; $i ++) {
+            $ref = &$ret->rlist[$i];
+            $ref = $ref->copy($interpolator);
+        }
+        return $ret;
     }
 
     // ========================================================================
@@ -100,7 +112,7 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
         return new self(...$sub);
     }
 
-    private function get($offset): mixed
+    private function get($offset, bool $interpolate = true): mixed
     {
         foreach ($this->rlist as $c) {
             $v = $c->getOptional($offset, false);
@@ -108,7 +120,7 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
             if ($v->isPresent()) {
                 $v = $v->get();
 
-                if ($v instanceof Interpolation)
+                if ($v instanceof Interpolation && $interpolate)
                     return $c->getInterpolator()->execute($v->compilation, $this);
 
                 return $v;
@@ -164,9 +176,9 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
         return false;
     }
 
-    public function offsetGet($offset): mixed
+    public function offsetGet($offset, bool $interpolate = true): mixed
     {
-        return $this->get($offset);
+        return $this->get($offset, $interpolate);
     }
 
     public function offsetSet($offset, $value): void
@@ -201,13 +213,8 @@ final class TreeConfigHierarchy implements Configuration, \IteratorAggregate, De
         }
     }
 
-    public function getIterator(): \Generator
+    public function getIterator(bool $interpolate = true): \Generator
     {
-        return $this->_getIterator(false);
-    }
-
-    public function getRawValueIterator(): \Generator
-    {
-        return $this->_getIterator(true);
+        return $this->_getIterator(! $interpolate);
     }
 }

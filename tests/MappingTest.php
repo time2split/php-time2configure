@@ -124,6 +124,10 @@ final class MappingTest extends TestCase
             $this->assertTrue($opt->isPresent(), 'isPresent');
             $this->assertSame($v, $opt->get(), "opt->get()==$v");
         }
+
+        // Map for all reading modes
+        $mapped = Configurations::mapOnRead($config, $map, ReadingMode::cases());
+        $this->assertSame($expect, \iterator_to_array($mapped->getRawValueIterator()), 'raw iterator/allModes');
     }
 
     // ========================================================================

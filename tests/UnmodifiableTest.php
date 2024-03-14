@@ -26,6 +26,9 @@ final class UnmodifiableTest extends TestCase
             ],
             [
                 fn () => Configurations::unmodifiable(Configurations::ofTree($tree))->copy()
+            ],
+            [
+                fn () => clone Configurations::unmodifiable(Configurations::ofTree($tree))
             ]
         ];
     }
@@ -36,6 +39,7 @@ final class UnmodifiableTest extends TestCase
         $config = $provider();
         $this->expectException(UnmodifiableException::class);
         $config['a'] = true;
+        unset($config);
     }
 
     #[DataProvider('unmodifiableProvider')]

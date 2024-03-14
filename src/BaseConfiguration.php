@@ -26,16 +26,13 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     /**
      *
      * {@inheritdoc}
+     * @param bool $interpolate
+     *            Set to true if the value must be interpolated, set to false if the raw Interpolation values must be retrieved.
      * @see \IteratorAggregate::getIterator()
      */
-    public function getIterator(): \Iterator;
+    public function getIterator(bool $interpolate = true): \Iterator;
 
-    /**
-     * Retrieve an iterator to iterate through the raw stored value including Interpolation values.
-     *
-     * @return \Iterator An iterator instance.
-     */
-    public function getRawValueIterator(): \Iterator;
+    public function offsetGet($offset, bool $interpolate = true): mixed;
 
     /**
      * Get the value if set.
@@ -61,4 +58,15 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
      * Drop all items from the configuration.
      */
     public function clear(): void;
+
+    /**
+     * Make a copy of the configuration.
+     *
+     * @param Interpolator $resetInterpolator
+     *            If not set (ie. null) the copy will contains the interpolated value of the configuration tree.
+     *            If set the copy will use this interpolator on the raw base value to create a new interpolated configuration.
+     *            Note that the interpolator may be the same as $config, in that case it means that the base interpolation is conserved.
+     * @return self A new Configuration instance.
+     */
+    public function copy(?Interpolator $interpolator = null): static;
 }

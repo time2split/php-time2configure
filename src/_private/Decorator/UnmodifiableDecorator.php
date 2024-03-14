@@ -27,29 +27,4 @@ final class UnmodifiableDecorator extends Decorator
     {
         throw new UnmodifiableException();
     }
-
-    public function mergeTree(array ...$trees): static
-    {
-        throw new UnmodifiableException();
-    }
-
-    public function merge(iterable ...$configs): static
-    {
-        throw new UnmodifiableException();
-    }
-
-    public function union(iterable ...$configs): static
-    {
-        throw new UnmodifiableException();
-    }
-
-    public function unsetFluent(...$offsets): static
-    {
-        throw new UnmodifiableException();
-    }
-
-    public function removeNodeFluent(...$offsets): static
-    {
-        throw new UnmodifiableException();
-    }
 }

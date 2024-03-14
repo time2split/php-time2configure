@@ -6,20 +6,55 @@ namespace Time2Split\Config;
  *
  * @author Olivier Rodriguez (zuri)
  */
-interface Configuration extends TreeConfiguration
+abstract class Configuration implements TreeConfiguration
 {
 
-    public function toArray(): array;
+    public final function toArray(bool $interpolate = true): array
+    {
+        return \iterator_to_array($this->getIterator($interpolate));
+    }
 
-    public function mergeTree(array ...$trees): static;
+    public final function rawCopy(): static
+    {
+        return $this->copy($this->getInterpolator());
+    }
 
-    public function merge(iterable ...$configs): static;
+    public final function getRawValueIterator(): \Iterator
+    {
+        return $this->getIterator(false);
+    }
 
-    public function union(iterable ...$configs): static;
+    public final function merge(iterable ...$configs): static
+    {
+        Configurations::merge($this, ...$configs);
+        return $this;
+    }
 
-    public function copy(?Interpolator $interpolator = null): self;
+    public final function mergeTree(array ...$trees): static
+    {
+        Configurations::mergeTree($this, ...$trees);
+        return $this;
+    }
 
-    public function unsetFluent(...$offsets): static;
+    public final function union(iterable ...$configs): static
+    {
+        Configurations::union($this, ...$configs);
+        return $this;
+    }
 
-    public function removeNodeFluent(...$offsets): static;
+    public final function unsetFluent(...$offsets): static
+    {
+        foreach ($offsets as $offset)
+            unset($this[$offset]);
+
+        return $this;
+    }
+
+    public final function removeNodeFluent(...$offsets): static
+    {
+        foreach ($offsets as $offset)
+            $this->removeNode($offset);
+
+        return $this;
+    }
 }

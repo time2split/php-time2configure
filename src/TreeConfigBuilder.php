@@ -3,7 +3,6 @@ declare(strict_types = 1);
 namespace Time2Split\Config;
 
 use Time2Split\Config\_private\AbstractTreeConfig;
-use Time2Split\Config\_private\ConfigUtilities;
 use Time2Split\Config\_private\TreeConfig;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Traversables;
@@ -19,12 +18,19 @@ use Time2Split\Help\Traversables;
  */
 final class TreeConfigBuilder extends AbstractTreeConfig
 {
-    use ConfigUtilities;
 
     private function __construct()
     {
         $this->interpolator = Interpolators::null();
         $this->reset();
+    }
+
+    public function copy(?Interpolator $interpolator = null): static
+    {
+        $ret = new self();
+        $ret->setInterpolator($interpolator ?? $this->interpolator);
+        $this->copyToAbstract($ret, $interpolator);
+        return $ret;
     }
 
     /**
@@ -63,32 +69,14 @@ final class TreeConfigBuilder extends AbstractTreeConfig
                 $this->setInterpolator($resetInterpolator);
                 $this->merge(Traversables::mapValue($config->getRawValueIterator(), self::getBaseValue(...)));
             } else
-                $this->rawCopy($config);
+                $this->_rawCopy($config);
         } else
             $this->merge($config);
 
         return $this;
     }
 
-    private static function getBaseValue($val)
-    {
-        return $val instanceof Interpolation ? $val->text : $val;
-    }
-
-    /**
-     * Make a copy conserving the interpolation.
-     *
-     * @param Configuration $config
-     *            The configuration to copy from.
-     * @return self This builder.
-     */
-    public function rawCopyOf(Configuration $config): self
-    {
-        $this->emptyCopyOf($config)->rawCopy($config);
-        return $this;
-    }
-
-    private function rawCopy(Configuration $config): void
+    private function _rawCopy(Configuration $config): void
     {
         foreach ($config->getRawValueIterator() as $k => $v)
             $this[$k] = $v;

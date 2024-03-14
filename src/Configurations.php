@@ -28,11 +28,11 @@ final class Configurations
     /**
      * Get a new TreeConfigBuilder instance.
      *
-     * @return TreeConfigBuilder A new instance.
+     * @return TreeConfigurationBuilder A new instance.
      */
-    public static function builder(): TreeConfigBuilder
+    public static function builder(): TreeConfigurationBuilder
     {
-        return new TreeConfigBuilder();
+        return new TreeConfigurationBuilder();
     }
 
     // ========================================================================

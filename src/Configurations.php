@@ -72,7 +72,7 @@ final class Configurations
      *            Note that the interpolator may be the same as $config, in that case it means that the base interpolation is conserved.
      * @return self A new Configuration instance.
      */
-    public static function copyOf(Configuration $config, Interpolator $interpolator = null): Configuration
+    public static function treeCopyOf(Configuration $config, Interpolator $interpolator = null): Configuration
     {
         return self::builder()->copyOf($config, $interpolator)->build();
     }
@@ -84,9 +84,9 @@ final class Configurations
      *            The configuration to copy from.
      * @return self A new Configuration instance.
      */
-    public static function rawCopyOf(Configuration $config): Configuration
+    public static function rawTreeCopyOf(Configuration $config): Configuration
     {
-        return self::builder()->rawCopyOf($config)->build();
+        return self::treeCopyOf($config, $config->getInterpolator());
     }
 
     /**
@@ -96,7 +96,7 @@ final class Configurations
      *            The configuration to copy from.
      * @return self A new Configuration instance.
      */
-    public static function emptyCopyOf(Configuration $config): Configuration
+    public static function emptyTreeCopyOf(Configuration $config): Configuration
     {
         return self::builder()->emptyCopyOf($config)->build();
     }
@@ -132,7 +132,7 @@ final class Configurations
      */
     public static function emptyChild(Configuration $parent): Configuration
     {
-        return self::hierarchy($parent, self::emptyCopyOf($parent));
+        return self::hierarchy($parent, self::emptyTreeCopyOf($parent));
     }
 
     /**
@@ -218,14 +218,21 @@ final class Configurations
     {
         return new class($config, $do) extends ConsumerDecorator {
 
-            public function offsetGet($key): mixed
+            public function offsetGet($key, bool $interpolate = true): mixed
             {
-                $this->consumer->consume($this->decorate, $key, $v = $this->decorate[$key]);
+                $v = $this->decorate->offsetGet($key, $interpolate);
+
+                if ($interpolate)
+                    $this->consumer->consume($this->decorate, $key, $v);
+
                 return $v;
             }
 
-            public function getIterator(): \Generator
+            public function getIterator(bool $interpolate = true): \Generator
             {
+                if (! $interpolate)
+                    return $this->decorate->getRawValueIterator();
+
                 foreach ($this->decorate as $k => $v) {
                     $this->offsetGet($k);
                     yield $k => $v;
@@ -261,17 +268,27 @@ final class Configurations
     {
         return new class($config, $map) extends MapDecorator {
 
-            public function offsetGet($key): mixed
+            public function offsetGet(mixed $key, bool $interpolate = true): mixed
             {
-                return $this->map->map($this->decorate, $key, $this->decorate[$key])->value;
+                $v = $this->decorate->offsetGet($key, $interpolate);
+
+                if ($interpolate)
+                    return $this->map->map($this->decorate, $key, $v)->value;
+                else
+                    return $v;
             }
 
-            public function getIterator(): \Generator
+            public function getIterator(bool $interpolate = true): \Iterator
             {
-                foreach ($this->decorate as $k => $notUsed)
-                    yield $k => $this->offsetGet($k);
+                if (! $interpolate)
+                    yield from $this->decorate->getRawValueIterator();
+                else {
 
-                unset($notUsed);
+                    foreach ($this->decorate as $k => $notUsed)
+                        yield $k => $this->offsetGet($k);
+
+                    unset($notUsed);
+                }
             }
 
             public function getOptional($key, bool $interpolate = true): Optional

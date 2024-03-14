@@ -4,21 +4,28 @@ namespace Time2Split\Config\_private\Decorator;
 
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolator;
+use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Optional;
 
 /**
  *
+ * @internal
  * @author Olivier Rodriguez (zuri)
  *
  */
-abstract class Decorator implements Configuration
+abstract class Decorator extends Configuration implements DelimitedKeys
 {
 
-    protected Configuration $decorate;
+    protected Configuration&DelimitedKeys $decorate;
 
-    public function __construct(Configuration $decorate)
+    public function __construct(Configuration&DelimitedKeys $decorate)
     {
         $this->decorate = $decorate;
+    }
+
+    public function copy(?Interpolator $interpolator = null): static
+    {
+        return $this->resetDecoration($this->decorate->copy($interpolator));
     }
 
     public function __clone()
@@ -29,6 +36,16 @@ abstract class Decorator implements Configuration
     public function getDecorated(): Configuration
     {
         return $this->decorate;
+    }
+
+    public function getKeyDelimiter(): string
+    {
+        return $this->decorate->getKeyDelimiter();
+    }
+
+    public function pathToOffset(array $path): mixed
+    {
+        return $this->decorate->pathToOffset($path);
     }
 
     private function resetDecoration(Configuration $decorate): static
@@ -46,14 +63,9 @@ abstract class Decorator implements Configuration
         return $this->decorate->getInterpolator();
     }
 
-    public function getIterator(): \Iterator
+    public function getIterator(bool $interpolate = true): \Iterator
     {
-        return $this->decorate->getIterator();
-    }
-
-    public function getRawValueIterator(): \Iterator
-    {
-        return $this->decorate->getRawValueIterator();
+        return $this->decorate->getIterator($interpolate);
     }
 
     public function getOptional($offset, bool $interpolate = true): Optional
@@ -81,9 +93,9 @@ abstract class Decorator implements Configuration
         $this->decorate->offsetSet($offset, $value);
     }
 
-    public function offsetGet(mixed $offset): mixed
+    public function offsetGet(mixed $offset, bool $interpolate = true): mixed
     {
-        return $this->decorate->offsetGet($offset);
+        return $this->decorate->offsetGet($offset, $interpolate);
     }
 
     public function offsetExists(mixed $offset): bool
@@ -122,48 +134,5 @@ abstract class Decorator implements Configuration
     public function removeNode($offset): void
     {
         $this->decorate->removeNode($offset);
-    }
-
-    // ========================================================================
-    // Configuration
-    // ========================================================================
-    public function toArray(): array
-    {
-        return $this->decorate->toArray();
-    }
-
-    public function mergeTree(array ...$trees): static
-    {
-        $this->decorate->mergeTree(...$trees);
-        return $this;
-    }
-
-    public function merge(iterable ...$configs): static
-    {
-        $this->decorate->merge(...$configs);
-        return $this;
-    }
-
-    public function union(iterable ...$configs): static
-    {
-        $this->decorate->union(...$configs);
-        return $this;
-    }
-
-    public function copy(?Interpolator $interpolator = null): self
-    {
-        return $this->resetDecoration($this->decorate->copy($interpolator));
-    }
-
-    public function unsetFluent(...$offsets): static
-    {
-        $this->decorate->unsetFluent(...$offsets);
-        return $this;
-    }
-
-    public function removeNodeFluent(...$offsets): static
-    {
-        $this->decorate->removeNodeFluent(...$offsets);
-        return $this;
     }
 }

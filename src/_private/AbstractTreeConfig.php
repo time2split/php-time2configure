@@ -7,15 +7,17 @@ use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\_private\TreeConfig\TreeStorage;
-use Time2Split\Help\Optional;
 use Time2Split\Help\Arrays;
+use Time2Split\Help\Optional;
+use Time2Split\Help\Traversables;
 
 /**
  *
+ * @internal
  * @author Olivier Rodriguez (zuri)
  *
  */
-abstract class AbstractTreeConfig implements Configuration, TreeStorage, DelimitedKeys
+abstract class AbstractTreeConfig extends Configuration implements TreeStorage, DelimitedKeys
 {
 
     protected string $delimiter;
@@ -33,6 +35,28 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
         $this->interpolator = $interpolator;
         $this->storage = $storage;
         $this->count = 0;
+    }
+
+    protected static function getBaseValue($val)
+    {
+        return $val instanceof Interpolation ? $val->text : $val;
+    }
+
+    protected function copyToAbstract(AbstractTreeConfig $dest, ?Interpolator $resetInterpolator): void
+    {
+        assert(0 === $dest->count());
+
+        if (isset($resetInterpolator)) {
+            assert($resetInterpolator === $dest->interpolator);
+
+            if ($resetInterpolator != $this->interpolator)
+                $dest->merge(Traversables::mapValue($this->getRawValueIterator(), self::getBaseValue(...)));
+            else
+                $dest->storage = $this->storage;
+        } else {
+            assert($this->interpolator === $dest->interpolator);
+            $dest->merge($this);
+        }
     }
 
     // ========================================================================
@@ -151,14 +175,14 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
         return $this->followOffset($offset);
     }
 
-    private function get($offset): mixed
+    private function get($offset, bool $interpolate = true): mixed
     {
         $val = $this->getWithoutInterpolation($offset);
 
         if ($val === TreeConfigSpecial::absent)
             return null;
 
-        return $this->interpolate($val);
+        return $interpolate ? $this->interpolate($val) : $val;
     }
 
     public function getOptional($offset, bool $interpolate = true): Optional
@@ -278,9 +302,9 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
         return $opt->isPresent() && null !== $opt->get();
     }
 
-    public function offsetGet($offset): mixed
+    public function offsetGet($offset, bool $interpolate = true): mixed
     {
-        return $this->get($offset);
+        return $this->get($offset, $interpolate);
     }
 
     public function offsetSet($offset, $value): void
@@ -310,12 +334,13 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
                 if (\array_key_exists('', $v))
                     yield $k => $v[''];
 
-                foreach ($this->generateKeyValuePairsOf($v) as $kk => $vv)
+                foreach ($this->generateRawKeyValuePairsOf($v) as $kk => $vv)
                     yield "$k{$this->delimiter}$kk" => $vv;
             }
         }
     }
 
+    // Useless
     private function generateKeysOf(array $data): \Generator
     {
         foreach ($data as $k => $v) {
@@ -334,13 +359,11 @@ abstract class AbstractTreeConfig implements Configuration, TreeStorage, Delimit
     }
 
     // ========================================================================
-    public function getIterator(): \Generator
+    public function getIterator(bool $interpolate = true): \Generator
     {
-        return self::generateKeyValuePairsOf($this->storage);
-    }
-
-    public function getRawValueIterator(): \Generator
-    {
-        return self::generateRawKeyValuePairsOf($this->storage);
+        if ($interpolate)
+            return self::generateKeyValuePairsOf($this->storage);
+        else
+            return self::generateRawKeyValuePairsOf($this->storage);
     }
 }

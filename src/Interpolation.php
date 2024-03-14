@@ -2,17 +2,24 @@
 namespace Time2Split\Config;
 
 /**
- * An interpolated value is automaticly promoted to an Interpolation value containing the base raw text value and its compiled value.
- *
- * Instances of this class are not intended to be constructed outside a Configuration instance.
- * The class is publicly exposed to permits the `instanceof` test on raw values if needed in some external algorithms.
+ * Inside a {@link Configuration},
+ * a compiled value must be automatically promoted to an {@link Interpolation} value
+ * containing the *base value* and its *compilation*.
  *
  * @author Olivier Rodriguez (zuri)
  *
+ * @property-read mixed $baseValue The base value initially assigned in the configuration.
+ * @property-read mixed $compilation The compilation made by the configuration {@link Interpolator}.
+ *
+ * @see Interpolator
  */
 final class Interpolation
 {
 
-    public function __construct(public readonly string $text, public readonly mixed $compilation)
+    /**
+     *
+     * @internal
+     */
+    public function __construct(public readonly mixed $baseValue, public readonly mixed $compilation)
     {}
 }

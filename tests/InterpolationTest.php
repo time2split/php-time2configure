@@ -12,6 +12,7 @@ use Time2Split\Config\Interpolators;
 use Time2Split\Config\Tests\Help\Producer;
 use Time2Split\Config\Tests\Help\Provided;
 use Time2Split\Config\_private\Decorator\ResetInterpolationDecorator;
+use Time2Split\Config\Entry\ReadingMode;
 
 /**
  *
@@ -107,9 +108,9 @@ final class InterpolationTest extends TestCase
     public function testCopy(Configuration $configBase)
     {
         $configCopy = $configBase->copy();
-        $this->assertTrue($configBase->getOptional('b', false)
+        $this->assertTrue($configBase->getOptional('b', ReadingMode::RawValue)
             ->get() instanceof Interpolation, 'base is Interpolation');
-        $this->assertFalse($configCopy->getOptional('b', false)
+        $this->assertFalse($configCopy->getOptional('b', ReadingMode::RawValue)
             ->get() instanceof Interpolation, 'copy is not Interpolation');
     }
 
@@ -117,9 +118,9 @@ final class InterpolationTest extends TestCase
     public function testRawCopy(Configuration $configBase)
     {
         $configCopy = $configBase->rawCopy();
-        $this->assertTrue($configBase->getOptional('b', false)
+        $this->assertTrue($configBase->getOptional('b', ReadingMode::RawValue)
             ->get() instanceof Interpolation, 'base is Interpolation');
-        $this->assertTrue($configCopy->getOptional('b', false)
+        $this->assertTrue($configCopy->getOptional('b', ReadingMode::RawValue)
             ->get() instanceof Interpolation, 'copy is not Interpolation');
     }
 

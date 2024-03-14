@@ -3,9 +3,10 @@ declare(strict_types = 1);
 namespace Time2Split\Config\_private\Decorator;
 
 use Time2Split\Config\Configuration;
+use Time2Split\Config\Entries;
 use Time2Split\Config\Interpolator;
+use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Help\Optional;
-use Time2Split\Config\Interpolation;
 
 /**
  *
@@ -21,41 +22,38 @@ abstract class ResetInterpolationDecorator extends Decorator
         parent::__construct($decorate);
     }
 
-    private function interpolate($value): mixed
+    public function getInterpolator(): Interpolator
     {
-        if ($value instanceof Interpolation)
-            $value = $value->text;
-
-        $compilation = $this->interpolator->compile($value);
-
-        if ($compilation->isPresent())
-            $value = $this->interpolator->execute($compilation->get(), $this->decorate);
-
-        return $value;
+        return $this->interpolator;
     }
 
-    public function offsetGet(mixed $offset, bool $interpolate = true): mixed
+    public function offsetGet(mixed $offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
-        return $this->interpolate($this->decorate->offsetGet($offset, false));
+        $baseValue = $this->decorate->offsetGet($offset, ReadingMode::BaseValue);
+
+        if ($mode === ReadingMode::BaseValue)
+            return $baseValue;
+
+        return Entries::valueOf($baseValue, $this, $mode);
     }
 
-    public function getOptional($offset, bool $interpolate = true): Optional
+    public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
     {
-        $opt = $this->decorate->getOptional($offset, false);
+        $baseOpt = $this->decorate->getOptional($offset, ReadingMode::BaseValue);
 
-        if (! $opt->isPresent())
-            return $opt;
-        else
-            return Optional::of($this->interpolate($opt->get()));
+        if (! $baseOpt->isPresent() || $mode === ReadingMode::BaseValue)
+            return $baseOpt;
+
+        return Optional::of(Entries::valueOf($baseOpt->get(), $this, $mode));
     }
 
-    public function getIterator(bool $interpolate = true): \Iterator
+    public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator
     {
-        if (! $interpolate)
-            yield from $this->getRawValueIterator();
-        else {
-            foreach ($this->decorate->getRawValueIterator() as $k => $v)
-                yield $k => $this->interpolate($v);
-        }
+        $baseEntries = $this->decorate->getIterator(ReadingMode::BaseValue);
+
+        if ($mode === ReadingMode::BaseValue)
+            return $baseEntries;
+
+        return Entries::entriesOf($baseEntries, $this, $mode);
     }
 }

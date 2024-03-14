@@ -10,6 +10,8 @@ use Time2Split\Config\_private\TreeConfig\TreeStorage;
 use Time2Split\Help\Arrays;
 use Time2Split\Help\Optional;
 use Time2Split\Help\Traversables;
+use Time2Split\Config\Entries;
+use Time2Split\Config\Entry\ReadingMode;
 
 /**
  *
@@ -38,9 +40,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     protected static function getBaseValue($val)
-    {
-        return $val instanceof Interpolation ? $val->text : $val;
-    }
+    {}
 
     protected function copyToAbstract(AbstractTreeConfig $dest, ?Interpolator $resetInterpolator): void
     {
@@ -50,7 +50,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
             assert($resetInterpolator === $dest->interpolator);
 
             if ($resetInterpolator != $this->interpolator)
-                $dest->merge(Traversables::mapValue($this->getRawValueIterator(), self::getBaseValue(...)));
+                $dest->merge(Traversables::mapValue($this->getRawValueIterator(), Entries::baseValueOf(...)));
             else
                 $dest->storage = $this->storage;
         } else {
@@ -169,35 +169,35 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         $this->setStoredValue($offset, $value);
     }
 
-    private function getWithoutInterpolation($offset): mixed
+    private function getRawValue($offset): mixed
     {
         $offset = $this->makeUserPath($offset);
         return $this->followOffset($offset);
     }
 
-    private function get($offset, bool $interpolate = true): mixed
+    private function get($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
-        $val = $this->getWithoutInterpolation($offset);
+        $rawValue = $this->getRawValue($offset);
 
-        if ($val === TreeConfigSpecial::absent)
+        if ($rawValue === TreeConfigSpecial::absent)
             return null;
 
-        return $interpolate ? $this->interpolate($val) : $val;
+        return Entries::valueOf($rawValue, $this, $mode);
     }
 
-    public function getOptional($offset, bool $interpolate = true): Optional
+    public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
     {
-        $val = $this->getWithoutInterpolation($offset);
+        $rawValue = $this->getRawValue($offset);
 
-        if ($val === TreeConfigSpecial::absent)
+        if ($rawValue === TreeConfigSpecial::absent)
             return Optional::empty();
 
-        return Optional::of($interpolate ? $this->interpolate($val) : $val);
+        return Optional::of(Entries::valueOf($rawValue, $this, $mode));
     }
 
     public function isPresent($offset): bool
     {
-        return $this->getWithoutInterpolation($offset) !== TreeConfigSpecial::absent;
+        return $this->getRawValue($offset) !== TreeConfigSpecial::absent;
     }
 
     public function nodeIsPresent($offset): bool
@@ -302,9 +302,9 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         return $opt->isPresent() && null !== $opt->get();
     }
 
-    public function offsetGet($offset, bool $interpolate = true): mixed
+    public function offsetGet($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
-        return $this->get($offset, $interpolate);
+        return $this->get($offset, $mode);
     }
 
     public function offsetSet($offset, $value): void
@@ -318,14 +318,18 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     // ========================================================================
-    private function generateKeyValuePairsOf(array $data): \Generator
+
+    /**
+     * Retrieves the raw entries of the configuration.
+     *
+     * @return iterable The entry sequence of the configuration.
+     */
+    protected function getRawEntries(): iterable
     {
-        foreach ($this->generateRawKeyValuePairsOf($data) as $k => $v) {
-            yield $k => $this->interpolate($v);
-        }
+        return $this->rawEntriesOf($this->storage);
     }
 
-    private function generateRawKeyValuePairsOf(array $data): \Generator
+    private function rawEntriesOf(array $data): \Generator
     {
         foreach ($data as $k => $v) {
 
@@ -334,36 +338,20 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
                 if (\array_key_exists('', $v))
                     yield $k => $v[''];
 
-                foreach ($this->generateRawKeyValuePairsOf($v) as $kk => $vv)
+                foreach ($this->rawEntriesOf($v) as $kk => $vv)
                     yield "$k{$this->delimiter}$kk" => $vv;
             }
         }
     }
 
-    // Useless
-    private function generateKeysOf(array $data): \Generator
+    /**
+     *
+     * {@inheritdoc} @ internal
+     * @internal It uses {@link AbstractTreeConfig::getRawEntries()} to retrieve the raw entries.
+     * @see \Time2Split\Config\BaseConfiguration::getIterator()
+     */
+    final public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Generator
     {
-        foreach ($data as $k => $v) {
-
-            if (\is_array($v)) {
-
-                if (isset($v['']))
-                    yield $k;
-
-                foreach ($this->generateKeyValuePairsOf($v) as $kk => $NotUsed)
-                    yield "$k{$this->delimiter}$kk";
-            }
-        }
-        return;
-        unset($NotUsed);
-    }
-
-    // ========================================================================
-    public function getIterator(bool $interpolate = true): \Generator
-    {
-        if ($interpolate)
-            return self::generateKeyValuePairsOf($this->storage);
-        else
-            return self::generateRawKeyValuePairsOf($this->storage);
+        return Entries::entriesOf($this->getRawEntries(), $this, $mode);
     }
 }

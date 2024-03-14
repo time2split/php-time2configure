@@ -1,6 +1,8 @@
 <?php
 namespace Time2Split\Config;
 
+use Time2Split\Config\Entry\ReadingMode;
+
 /**
  * Extends the TreeConfiguration with utilities methods mainly copied from Configurations.
  *
@@ -9,9 +11,9 @@ namespace Time2Split\Config;
 abstract class Configuration implements TreeConfiguration
 {
 
-    public final function toArray(bool $interpolate = true): array
+    public final function toArray(ReadingMode $mode = ReadingMode::Normal): array
     {
-        return \iterator_to_array($this->getIterator($interpolate));
+        return \iterator_to_array($this->getIterator($mode));
     }
 
     public final function rawCopy(): static
@@ -21,7 +23,12 @@ abstract class Configuration implements TreeConfiguration
 
     public final function getRawValueIterator(): \Iterator
     {
-        return $this->getIterator(false);
+        return $this->getIterator(ReadingMode::RawValue);
+    }
+
+    public final function getBaseValueIterator(): \Iterator
+    {
+        return $this->getIterator(ReadingMode::BaseValue);
     }
 
     public final function merge(iterable ...$configs): static

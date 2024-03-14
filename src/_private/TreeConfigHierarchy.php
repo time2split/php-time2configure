@@ -3,11 +3,11 @@ declare(strict_types = 1);
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configuration;
-use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
+use Time2Split\Config\Entry\ReadingMode;
+use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Optional;
 use Time2Split\Help\Traversables;
-use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 
 /**
  * A sequence of TreeConfig instances where the the last one is the only mutable instance.
@@ -20,6 +20,8 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
 
     /**
      * The first element is the last TreeConfig added.
+     *
+     * @var array[Configuration]
      */
     private array $rlist;
 
@@ -112,30 +114,24 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
         return new self(...$sub);
     }
 
-    private function get($offset, bool $interpolate = true): mixed
+    private function get($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
         foreach ($this->rlist as $c) {
-            $v = $c->getOptional($offset, false);
+            $v = $c->getOptional($offset, $mode);
 
-            if ($v->isPresent()) {
-                $v = $v->get();
-
-                if ($v instanceof Interpolation && $interpolate)
-                    return $c->getInterpolator()->execute($v->compilation, $this);
-
-                return $v;
-            }
+            if ($v->isPresent())
+                return $v->get();
         }
         return null;
     }
 
-    public function getOptional($offset, bool $interpolate = true): Optional
+    public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
     {
         foreach ($this->rlist as $c) {
-            $v = $c->getOptional($offset, $interpolate);
+            $opt = $c->getOptional($offset, $mode);
 
-            if ($v->isPresent())
-                return $v;
+            if ($opt->isPresent())
+                return $opt;
         }
         return Optional::empty();
     }
@@ -176,9 +172,9 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
         return false;
     }
 
-    public function offsetGet($offset, bool $interpolate = true): mixed
+    public function offsetGet($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
-        return $this->get($offset, $interpolate);
+        return $this->get($offset, $mode);
     }
 
     public function offsetSet($offset, $value): void
@@ -197,13 +193,12 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     }
 
     // ========================================================================
-    private function _getIterator(bool $raw): \Generator
+    public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Generator
     {
         $cache = [];
-        $getIterator = $raw ? fn ($c) => $c->getRawValueIterator() : fn ($c) => $c;
 
         foreach ($this->rlist as $config) {
-            foreach ($getIterator($config) as $k => $v) {
+            foreach ($config->getIterator($mode) as $k => $v) {
 
                 if (! isset($cache[$k])) {
                     $cache[$k] = true;
@@ -211,10 +206,5 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
                 }
             }
         }
-    }
-
-    public function getIterator(bool $interpolate = true): \Generator
-    {
-        return $this->_getIterator(! $interpolate);
     }
 }

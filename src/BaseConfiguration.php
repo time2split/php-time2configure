@@ -2,6 +2,7 @@
 namespace Time2Split\Config;
 
 use Time2Split\Help\Optional;
+use Time2Split\Config\Entry\ReadingMode;
 
 /**
  * A set of accessible and modifiable key => value entries.
@@ -26,24 +27,32 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     /**
      *
      * {@inheritdoc}
-     * @param bool $interpolate
-     *            Set to true if the value must be interpolated, set to false if the raw Interpolation values must be retrieved.
+     * @param ReadingMode $mode
+     *            The mode with which to retrieves the entry value.
+     * @see ReadingMode
      * @see \IteratorAggregate::getIterator()
      */
-    public function getIterator(bool $interpolate = true): \Iterator;
+    public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator;
 
-    public function offsetGet($offset, bool $interpolate = true): mixed;
+    /**
+     *
+     * {@inheritdoc}
+     * @param ReadingMode $mode
+     *            The mode with which to retrieves the entry value.
+     * @see \ArrayAccess::offsetGet()
+     */
+    public function offsetGet($offset, ReadingMode $mode = ReadingMode::Normal): mixed;
 
     /**
      * Get the value if set.
      *
      * @param mixed $offset
      *            The offset to retrieve.
-     * @param bool $interpolate
-     *            Set to true if the value must be interpolated, set to false if the raw Interpolation values must be retrieved.
+     * @param ReadingMode $mode
+     *            The mode with which to retrieves the entry value.
      * @return Optional The value to retrieve.
      */
-    public function getOptional($offset, bool $interpolate = true): Optional;
+    public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional;
 
     /**
      * Whether an offset is present with a value (the value may be null).

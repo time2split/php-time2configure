@@ -9,17 +9,25 @@ use Time2Split\Help\Traversables;
 
 /**
  * A builder of tree-shaped Configuration instances.
+ *
+ * A builder can only be create with the Configurations::builder() method factory.
+ *
  * The created Configuration is a tree where each node may have a value.
  * That is, considering '.' as a path node delimiter, if $config['parent.child'] is an existant path,
  * then $config['parent'] may have it's own value without breaking the tree structure of the instance.
  *
  * @author Olivier Rodriguez (zuri)
- *
+ * @see Configurations::builder()
  */
 final class TreeConfigBuilder extends AbstractTreeConfig
 {
 
-    private function __construct()
+    /**
+     *
+     * @internal By default the internal state of the builder is equivalent to call all the setters of the builder without any argument.
+     *
+     */
+    public function __construct()
     {
         $this->interpolator = Interpolators::null();
         $this->reset();
@@ -31,19 +39,6 @@ final class TreeConfigBuilder extends AbstractTreeConfig
         $ret->setInterpolator($interpolator ?? $this->interpolator);
         $this->copyToAbstract($ret, $interpolator);
         return $ret;
-    }
-
-    /**
-     * !!Do not use this method manually, it is only intended for the uses of time2configure.!!
-     * Get a new builder in its default state.
-     *
-     * By default the internal state of the builder is equivalent to call all the setters of the builder without any argument.
-     *
-     * @return TreeConfigBuilder The new builder.
-     */
-    public static function _private_builder(): TreeConfigBuilder
-    {
-        return new TreeConfigBuilder();
     }
 
     // ========================================================================
@@ -141,7 +136,7 @@ final class TreeConfigBuilder extends AbstractTreeConfig
 
         if ($this->count() > 0) {
             $it = $this->getRawValueIterator();
-            $it = Traversables::mapValue($it, self::getBaseValue(...));
+            $it = Traversables::mapValue($it, Entries::baseValueOf(...));
 
             foreach ($it as $k => $v)
                 $this[$k] = $v;

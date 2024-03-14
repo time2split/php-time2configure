@@ -4,6 +4,7 @@ namespace Time2Split\Config\_private\Decorator;
 
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolator;
+use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Optional;
 
@@ -63,14 +64,14 @@ abstract class Decorator extends Configuration implements DelimitedKeys
         return $this->decorate->getInterpolator();
     }
 
-    public function getIterator(bool $interpolate = true): \Iterator
+    public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator
     {
-        return $this->decorate->getIterator($interpolate);
+        return $this->decorate->getIterator($mode);
     }
 
-    public function getOptional($offset, bool $interpolate = true): Optional
+    public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
     {
-        return $this->decorate->getOptional($offset, $interpolate);
+        return $this->decorate->getOptional($offset, $mode);
     }
 
     public function isPresent($offset): bool
@@ -93,9 +94,9 @@ abstract class Decorator extends Configuration implements DelimitedKeys
         $this->decorate->offsetSet($offset, $value);
     }
 
-    public function offsetGet(mixed $offset, bool $interpolate = true): mixed
+    public function offsetGet(mixed $offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
-        return $this->decorate->offsetGet($offset, $interpolate);
+        return $this->decorate->offsetGet($offset, $mode);
     }
 
     public function offsetExists(mixed $offset): bool

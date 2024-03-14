@@ -3,17 +3,18 @@ declare(strict_types = 1);
 namespace Time2Split\Config;
 
 use Time2Split\Config\Entry\Consumer;
+use Time2Split\Config\Entry\Map;
 use Time2Split\Config\Entry\MapKey;
 use Time2Split\Config\Entry\MapValue;
+use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\_private\TreeConfigHierarchy;
 use Time2Split\Config\_private\Decorator\ConsumerDecorator;
 use Time2Split\Config\_private\Decorator\MapDecorator;
 use Time2Split\Config\_private\Decorator\UnmodifiableDecorator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Arrays;
-use Time2Split\Help\Classes\NotInstanciable;
-use Time2Split\Config\Entry\Map;
 use Time2Split\Help\Optional;
+use Time2Split\Help\Classes\NotInstanciable;
 
 /**
  *
@@ -31,7 +32,7 @@ final class Configurations
      */
     public static function builder(): TreeConfigBuilder
     {
-        return TreeConfigBuilder::_private_builder();
+        return new TreeConfigBuilder();
     }
 
     // ========================================================================
@@ -218,32 +219,32 @@ final class Configurations
     {
         return new class($config, $do) extends ConsumerDecorator {
 
-            public function offsetGet($key, bool $interpolate = true): mixed
+            public function offsetGet($key, ReadingMode $mode = ReadingMode::Normal): mixed
             {
-                $v = $this->decorate->offsetGet($key, $interpolate);
+                $v = $this->decorate->offsetGet($key, $mode);
 
-                if ($interpolate)
+                if ($mode === ReadingMode::Interpolate)
                     $this->consumer->consume($this->decorate, $key, $v);
 
                 return $v;
             }
 
-            public function getIterator(bool $interpolate = true): \Generator
+            public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Generator
             {
-                if (! $interpolate)
-                    return $this->decorate->getRawValueIterator();
+                if ($mode !== ReadingMode::Interpolate)
+                    return $this->decorate->getIterator($mode);
 
-                foreach ($this->decorate as $k => $v) {
+                foreach ($this->decorate->getIterator($mode) as $k => $v) {
                     $this->offsetGet($k);
                     yield $k => $v;
                 }
             }
 
-            public function getOptional($offset, bool $interpolate = true): Optional
+            public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
             {
-                $item = $this->decorate->getOptional($offset, $interpolate);
+                $item = $this->decorate->getOptional($offset, $mode);
 
-                if ($interpolate)
+                if ($mode === ReadingMode::Interpolate)
                     $this->consumer->consume($this->decorate, $offset, $item->orElse(null));
 
                 return $item;
@@ -268,34 +269,34 @@ final class Configurations
     {
         return new class($config, $map) extends MapDecorator {
 
-            public function offsetGet(mixed $key, bool $interpolate = true): mixed
+            public function offsetGet(mixed $key, ReadingMode $mode = ReadingMode::Normal): mixed
             {
-                $v = $this->decorate->offsetGet($key, $interpolate);
+                $v = $this->decorate->offsetGet($key, $mode);
 
-                if ($interpolate)
+                if ($mode === ReadingMode::Interpolate)
                     return $this->map->map($this->decorate, $key, $v)->value;
                 else
                     return $v;
             }
 
-            public function getIterator(bool $interpolate = true): \Iterator
+            public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator
             {
-                if (! $interpolate)
-                    yield from $this->decorate->getRawValueIterator();
+                if ($mode !== ReadingMode::Interpolate)
+                    yield from $this->decorate->getIterator($mode);
                 else {
 
-                    foreach ($this->decorate as $k => $notUsed)
+                    foreach ($this->decorate->getIterator($mode) as $k => $notUsed)
                         yield $k => $this->offsetGet($k);
 
                     unset($notUsed);
                 }
             }
 
-            public function getOptional($key, bool $interpolate = true): Optional
+            public function getOptional($key, ReadingMode $mode = ReadingMode::Normal): Optional
             {
-                $item = $this->decorate->getOptional($key, $interpolate);
+                $item = $this->decorate->getOptional($key, $mode);
 
-                if (! $interpolate)
+                if ($mode !== ReadingMode::Interpolate)
                     return $item;
 
                 $value = $item->orElse(null);

@@ -23,7 +23,11 @@ final class TreeConfig extends AbstractTreeConfig
         return $ret;
     }
 
-    public static function rawCopyOf(Configuration&DelimitedKeys $config)
+    /**
+     *
+     * @internal
+     */
+    public static function rawCopyOf(Configuration&DelimitedKeys $config): TreeConfig
     {
         $delimiter = $config->getKeyDelimiter();
         $interpolator = $config->getInterpolator();

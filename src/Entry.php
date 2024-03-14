@@ -2,7 +2,7 @@
 namespace Time2Split\Config;
 
 /**
- * Represents a key => value array entry.
+ * A key => value array/Configuration entry.
  *
  * @author zuri
  *

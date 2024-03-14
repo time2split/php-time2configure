@@ -9,6 +9,7 @@ use Time2Split\Config\Configurations;
 use Time2Split\Config\Entries;
 use Time2Split\Config\Entry;
 use Time2Split\Config\Entry\Map;
+use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\Tests\Help\Producer;
 use Time2Split\Config\Tests\Help\Provided;
 
@@ -119,7 +120,7 @@ final class MappingTest extends TestCase
 
         // Optional
         foreach (self::readTree as $k => $v) {
-            $opt = $mapped->getOptional($k, false);
+            $opt = $mapped->getOptional($k, ReadingMode::RawValue);
             $this->assertTrue($opt->isPresent(), 'isPresent');
             $this->assertSame($v, $opt->get(), "opt->get()==$v");
         }
@@ -227,7 +228,7 @@ final class MappingTest extends TestCase
         // Optional
         $readed = [];
         foreach ($expect as $k => $v) {
-            $opt = $doOnRead->getOptional($k, false);
+            $opt = $doOnRead->getOptional($k, ReadingMode::RawValue);
             $this->assertTrue($opt->isPresent(), 'isPresent');
             $this->assertSame($v, $opt->get(), 'opt->get()');
         }

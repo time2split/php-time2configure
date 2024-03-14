@@ -19,7 +19,7 @@ use Time2Split\Help\Traversables;
  * @author Olivier Rodriguez (zuri)
  * @see Configurations::builder()
  */
-final class TreeConfigBuilder extends AbstractTreeConfig
+final class TreeConfigurationBuilder extends AbstractTreeConfig
 {
 
     /**

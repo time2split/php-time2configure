@@ -14,6 +14,8 @@ use Time2Split\Config\_private\Decorator\UnmodifiableDecorator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Arrays;
 use Time2Split\Help\Optional;
+use Time2Split\Help\Set;
+use Time2Split\Help\Sets;
 use Time2Split\Help\Classes\NotInstanciable;
 
 /**
@@ -255,25 +257,47 @@ final class Configurations
     // ========================================================================
     // MAPPING
     // ========================================================================
+    private static Set $defaultModes;
+
+    private static function getReadingModeSet(?iterable $list): Set
+    {
+        if ($list instanceof Set)
+            return clone $list;
+
+        $classInstance = ReadingMode::Normal;
+
+        if (null === $list)
+            return self::$defaultModes ??= Sets::ofBackedEnum($classInstance)->setMore(ReadingMode::Normal);
+
+        return Sets::ofBackedEnum($classInstance)->setFromList($list);
+    }
 
     /**
-     * Decorate a configuration to do an mapping when a value is read (only with interpolation).
+     * Decorate a configuration to do an mapping when a value is read.
      *
      * @param Configuration $config
      *            The base configuration to decorate.
      * @param Map $map
      *            The mapping to do.
+     * @param ?iterable[ReadingMode] $mapOnReadingMode
+     *            Only do the mapping for the specified {@link ReadingMode}s.
+     *            If not set then the only allowed mode is {@link ReadingMode::Normal}
      * @return Configuration A new configuration instance wrapping the base configuration.
      */
-    public static function mapOnRead(Configuration $config, MapValue $map): Configuration
+    public static function mapOnRead(Configuration $config, MapValue $map, iterable $mapOnReadingMode = null): Configuration
     {
-        return new class($config, $map) extends MapDecorator {
+        return new class($config, $map, self::getReadingModeSet($mapOnReadingMode)) extends MapDecorator {
+
+            public function __construct($decorate, $map, private readonly Set $mapOnReadingMode)
+            {
+                parent::__construct($decorate, $map);
+            }
 
             public function offsetGet(mixed $key, ReadingMode $mode = ReadingMode::Normal): mixed
             {
                 $v = $this->decorate->offsetGet($key, $mode);
 
-                if ($mode === ReadingMode::Interpolate)
+                if ($this->mapOnReadingMode[$mode])
                     return $this->map->map($this->decorate, $key, $v)->value;
                 else
                     return $v;
@@ -281,7 +305,7 @@ final class Configurations
 
             public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator
             {
-                if ($mode !== ReadingMode::Interpolate)
+                if (! $this->mapOnReadingMode[$mode])
                     yield from $this->decorate->getIterator($mode);
                 else {
 
@@ -296,7 +320,7 @@ final class Configurations
             {
                 $item = $this->decorate->getOptional($key, $mode);
 
-                if ($mode !== ReadingMode::Interpolate)
+                if (! $this->mapOnReadingMode[$mode])
                     return $item;
 
                 $value = $item->orElse(null);

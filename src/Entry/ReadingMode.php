@@ -14,23 +14,23 @@ use Time2Split\Config\Interpolation;
  * @see ReadingMode::Normal
  * @see Interpolation
  */
-enum ReadingMode
+enum ReadingMode: int
 {
 
     /**
      * Retrieves the interpolated value of an entry, or the value iteself if not an {@link Interpolation}.
      */
-    case Interpolate;
+    case Interpolate = 0;
 
     /**
      * Retrieves the stored raw value of an entry.
      */
-    case RawValue;
+    case RawValue = 1;
 
     /**
      * Retrieves either the {@link Interpolation} base value, or the value iteself if not an {@link Interpolation}.
      */
-    case BaseValue;
+    case BaseValue = 2;
 
     /**
      * The normal configuration behaviour is to interpolate the entry values.

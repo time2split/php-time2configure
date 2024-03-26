@@ -6,6 +6,7 @@ use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
+use Time2Split\Help\Iterables;
 use Time2Split\Help\Optional;
 use Time2Split\Help\Traversables;
 
@@ -67,7 +68,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     // ========================================================================
     private function last(): Configuration
     {
-        return \Time2Split\Help\Arrays::first($this->rlist);
+        return \Time2Split\Help\Arrays::firstValue($this->rlist);
     }
 
     public function getInterpolator(): Interpolator
@@ -87,7 +88,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
 
     public function count(): int
     {
-        return Traversables::count($this);
+        return Iterables::count($this);
     }
 
     // ========================================================================

@@ -32,14 +32,14 @@ final class InterpolationReader
 
     public function for(mixed $text): \Time2Split\Help\Optional
     {
-        $this->fp = \Time2Split\Help\IO::readableStream($text);
+        $this->fp = \Time2Split\Help\Streams::readableStream($text);
         $getters = [];
 
         do {
             $update = false;
             $s = $this->nextString();
 
-            if (isset($s)) {
+            if ($s !== '') {
                 $getters[] = $s;
                 $update = true;
             }
@@ -71,19 +71,19 @@ final class InterpolationReader
 
     private $fp;
 
-    private function nextString(): ?string
+    private function nextString(): string
     {
-        return \Time2Split\Help\FIO::streamGetChars($this->fp, fn ($c) => $c !== '$');
+        return \Time2Split\Help\Streams::streamGetChars($this->fp, fn ($c) => $c !== '$');
     }
 
     private function skipSpaces(): void
     {
-        \Time2Split\Help\FIO::streamSkipChars($this->fp, \ctype_space(...));
+        \Time2Split\Help\Streams::streamSkipChars($this->fp, \ctype_space(...));
     }
 
     private function ungetc(): bool
     {
-        return \Time2Split\Help\FIO::streamUngetc($this->fp);
+        return \Time2Split\Help\Streams::streamUngetc($this->fp);
     }
 
     private function nextChar(): string|false
@@ -95,13 +95,13 @@ final class InterpolationReader
     private function nextConfigKey(): string
     {
         $this->skipSpaces();
-        return \Time2Split\Help\FIO::streamGetChars($this->fp, fn ($c) => \ctype_alnum($c) || $c === '.' || $c === '_');
+        return \Time2Split\Help\Streams::streamGetChars($this->fp, fn ($c) => \ctype_alnum($c) || $c === '.' || $c === '_');
     }
 
     private function nextWord(): string
     {
         $this->skipSpaces();
-        return \Time2Split\Help\FIO::streamGetChars($this->fp, fn ($c) => \ctype_alnum($c) || $c === '=' || $c === '.');
+        return \Time2Split\Help\Streams::streamGetChars($this->fp, fn ($c) => \ctype_alnum($c) || $c === '=' || $c === '.');
     }
 
     private function nextGetter(): ?\Closure

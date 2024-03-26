@@ -1,11 +1,11 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 namespace Time2Split\Config;
 
 use Time2Split\Config\_private\AbstractTreeConfig;
 use Time2Split\Config\_private\TreeConfig;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
-use Time2Split\Help\Traversables;
+use Time2Split\Help\Iterables;
 
 /**
  * A builder of tree-shaped Configuration instances.
@@ -62,7 +62,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
 
             if ($resetInterpolator != $this->interpolator) {
                 $this->setInterpolator($resetInterpolator);
-                $this->merge(Traversables::mapValue($config->getRawValueIterator(), self::getBaseValue(...)));
+                $this->merge(Iterables::mapValue($config->getRawValueIterator(), self::getBaseValue(...)));
             } else
                 $this->_rawCopy($config);
         } else
@@ -126,7 +126,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
      */
     public function setInterpolator(?Interpolator $interpolator = null): self
     {
-        if (! isset($interpolator))
+        if (!isset($interpolator))
             $interpolator = Interpolators::null();
 
         if ($this->interpolator == $interpolator)
@@ -136,7 +136,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
 
         if ($this->count() > 0) {
             $it = $this->getRawValueIterator();
-            $it = Traversables::mapValue($it, Entries::baseValueOf(...));
+            $it = Iterables::mapValue($it, Entries::baseValueOf(...));
 
             foreach ($it as $k => $v)
                 $this[$k] = $v;

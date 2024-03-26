@@ -9,9 +9,9 @@ use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\_private\TreeConfig\TreeStorage;
 use Time2Split\Help\Arrays;
 use Time2Split\Help\Optional;
-use Time2Split\Help\Traversables;
 use Time2Split\Config\Entries;
 use Time2Split\Config\Entry\ReadingMode;
+use Time2Split\Help\Iterables;
 
 /**
  *
@@ -50,7 +50,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
             assert($resetInterpolator === $dest->interpolator);
 
             if ($resetInterpolator != $this->interpolator)
-                $dest->merge(Traversables::mapValue($this->getRawValueIterator(), Entries::baseValueOf(...)));
+                $dest->merge(Iterables::mapValue($this->getRawValueIterator(), Entries::baseValueOf(...)));
             else
                 $dest->storage = $this->storage;
         } else {

@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Time2Split\Config\Configurations;
 use Time2Split\Help\Arrays;
-use Time2Split\Help\Traversables;
+use Time2Split\Help\Iterables;
 
 /**
  *
@@ -201,7 +201,7 @@ final class ConfigurationTest extends TestCase
             $flatKeys = \array_keys($flatResult);
 
             $this->assertArrayEquals($flatKeys, \array_keys($toArray));
-            $this->assertArrayEquals($flatKeys, iterator_to_array(Traversables::keys($config)));
+            $this->assertArrayEquals($flatKeys, iterator_to_array(Iterables::keys($config)));
         }
 
         // Clear

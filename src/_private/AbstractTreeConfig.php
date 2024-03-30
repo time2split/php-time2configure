@@ -226,7 +226,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     /**
-     * @param K $offset
+     * @param ?K $offset
      */
     private function getRawValue($offset): mixed
     {
@@ -235,7 +235,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     /**
-     * @param K $offset
+     * @param ?K $offset
      */
     private function get($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
@@ -248,7 +248,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     /**
-     * @param K $offset
+     * @param ?K $offset
      */
     public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
     {
@@ -272,7 +272,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     /**
-     * @param K $offset
+     * @param ?K $offset
      */
     private function unset($offset): void
     {

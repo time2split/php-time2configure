@@ -9,16 +9,26 @@ use Time2Split\Config\_private\TreeConfig;
 use Time2Split\Help\Iterables;
 
 /**
- * A builder of tree-shaped Configuration instances.
+ * A builder of configuration instances.
  *
- * A builder can only be create with the Configurations::builder() method factory.
- *
- * The created Configuration is a tree where each node may have a value.
+ * The builded configuration is a tree where each node may have a value.
  * That is, considering '.' as a path node delimiter, if $config['parent.child'] is an existant path,
  * then $config['parent'] may have it's own value without breaking the tree structure of the instance.
+ * 
+ * A builder is itself a configuration instance.
+ * It's the only one that can modify its internal state (interpolator, key delimiter).
+ * The {@see TreeConfigurationBuilder::build()} method can provides a more efficient configuration instances than the builder,
+ * due to the immutability of its internal states.
  *
+ * A builder can only be create with the {@see Configurations::builder()} method factory.
+ * 
+ * @template K
+ * @template V
+ * @extends AbstractTreeConfig<K,V,mixed>
+ * 
  * @author Olivier Rodriguez (zuri)
  * @see Configurations::builder()
+ * @package time2configure\configuration
  */
 final class TreeConfigurationBuilder extends AbstractTreeConfig
 {
@@ -34,6 +44,12 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
         $this->reset();
     }
 
+    /**
+     * Get a new builder instance using another interpolator.
+     * 
+     * @return static A new builder instance.
+     * @see BaseConfiguration::copy()
+     */
     public function copy(?Interpolator $interpolator = null): static
     {
         $ret = new self();
@@ -45,24 +61,27 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
     // ========================================================================
 
     /**
-     * Make a copy of the configuration tree.
+     * Makes a copy of the configuration tree.
      *
      * @param Configuration $config
      *            The configuration to copy from.
-     * @param Interpolator $resetInterpolator
-     *            If not set (ie. null) the copy will contains the interpolated value of the configuration tree.
-     *            If set the copy will use this interpolator on the raw base value to create a new interpolated configuration.$this
-     *            Note that the interpolator may be the same as $config, in that case it means that the base interpolation is conserved.
+     * @param Interpolator $interpolator The interpolator to use for the copy.
+     *  - (null)
+     *  If not set then the copy contains the interpolated value of the configuration tree and has'nt an interpolator.
+     *  - (isset)           
+     *  If set then the copy uses this interpolator on the raw base value to create a new interpolated configuration.
+     *  Note that the interpolator may be the same as $config, in that case it means that the same interpolation is conserved.
+     * 
      * @return self This builder.
      */
-    public function copyOf(Configuration $config, Interpolator $resetInterpolator = null): self
+    public function copyOf(Configuration $config, Interpolator $interpolator = null): self
     {
         $this->emptyCopyOf($config);
 
-        if (isset($resetInterpolator)) {
+        if (isset($interpolator)) {
 
-            if ($resetInterpolator != $this->interpolator) {
-                $this->setInterpolator($resetInterpolator);
+            if ($interpolator != $this->interpolator) {
+                $this->setInterpolator($interpolator);
                 $this->merge($config->getBaseValueIterator());
             } else
                 $this->_rawCopy($config);
@@ -79,7 +98,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
     }
 
     /**
-     * Make a copy instance conserving the interpolator but not the values.
+     * Makes a copy of a configuration conserving its interpolator but not the values.
      *
      * @param Configuration $config
      *            The configuration to copy from.
@@ -104,7 +123,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
 
     // ========================================================================
     /**
-     * Reset the builder to its construction state.
+     * Resets the builder to its instanciation state.
      *
      * @return self This builder
      */
@@ -116,7 +135,10 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
     }
 
     /**
-     * Set the interpolator of the Configuration instance to build.
+     * Sets the interpolator of the Configuration instance to build.
+     * 
+     * This method restore any Interpolation value already stored in the builder to its base value.
+     * Then the new interpolator is applied to all the values of the builder.
      *
      * @param Interpolator $interpolator
      *            The interpolator to assign.
@@ -157,7 +179,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
     // ========================================================================
 
     /**
-     * Build a new Configuration instance.
+     * Build a new configuration instance using the builder's tree and interpolator.
      *
      * @return Configuration The new instance
      */

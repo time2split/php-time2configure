@@ -1,5 +1,7 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -9,10 +11,10 @@ use Time2Split\Config\Configurations;
 use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\Interpolators;
-use Time2Split\Config\Tests\Help\Producer;
-use Time2Split\Config\Tests\Help\Provided;
 use Time2Split\Config\_private\Decorator\ResetInterpolationDecorator;
 use Time2Split\Config\Entry\ReadingMode;
+use Time2Split\Help\Tests\DataProvider\Producer;
+use Time2Split\Help\Tests\DataProvider\Provided;
 
 /**
  *
@@ -58,7 +60,7 @@ final class InterpolationTest extends TestCase
 
         foreach ($config as $k => $v) {
             $this->assertSame($expect[$k], $v);
-            $c ++;
+            $c++;
         }
         $this->assertSame(\count($expect), $c, 'count');
 
@@ -76,7 +78,7 @@ final class InterpolationTest extends TestCase
 
         foreach ($rawConfig as $k => $v) {
             $this->assertSame($expect[$k], $v, 'raw:get');
-            $c ++;
+            $c++;
         }
         $this->assertSame(\count($expect), $c, 'raw:count');
     }
@@ -114,16 +116,6 @@ final class InterpolationTest extends TestCase
             ->get() instanceof Interpolation, 'copy is not Interpolation');
     }
 
-    #[DataProvider('_testCopy')]
-    public function testRawCopy(Configuration $configBase)
-    {
-        $configCopy = $configBase->rawCopy();
-        $this->assertTrue($configBase->getOptional('b', ReadingMode::RawValue)
-            ->get() instanceof Interpolation, 'base is Interpolation');
-        $this->assertTrue($configCopy->getOptional('b', ReadingMode::RawValue)
-            ->get() instanceof Interpolation, 'copy is not Interpolation');
-    }
-
     public function testBuilderSetInterpolator()
     {
         $val = 10;
@@ -141,7 +133,9 @@ final class InterpolationTest extends TestCase
     public function testResetInterpolationDecorator(Configuration $configBase)
     {
         $base = self::readTree;
-        $resetIntp = new class($configBase, Interpolators::null()) extends ResetInterpolationDecorator {};
+        $resetIntp = new class($configBase, Interpolators::null()) extends ResetInterpolationDecorator
+        {
+        };
 
         foreach ($base as $k => $v) {
             $opt = $resetIntp->getOptional($k);

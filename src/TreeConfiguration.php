@@ -3,19 +3,22 @@
 namespace Time2Split\Config;
 
 /**
- * A TreeConfiguration has a tree-shaped structure.
+ * A configuration with a tree-shaped structure, that is a sequence of (K => V)
+ * where V can be a sub-configuration.
  *
- * An entry access is done using a single key (eg.
+ * An entry access is done using a single string key (eg.
  * $config[$key]) representing a path (ie. a branch) in the tree.
+ * For now only string keys are allowed, a (near) future extension will be to allow any type of key.
  *
  * Each part of the path is delimited by an internal delimiter character.
  * Each node of the tree can be associated with a value.
  *
  * @template K
  * @template V
- * @extends BaseConfiguration<K,V>
+ * @extends BaseConfiguration<K,V,mixed>
  * 
  * @author Olivier Rodriguez (zuri)
+ * @package time2configure\configuration
  */
 interface TreeConfiguration extends BaseConfiguration
 {
@@ -40,7 +43,9 @@ interface TreeConfiguration extends BaseConfiguration
 
     /**
      * Return a view on a sub-tree.
-     *
+     * 
+     * Because of the referencing of a sub-tree, updating one configuration's sub-tree will updates the other.
+     *  
      * @param K $path
      *            A path to the sub-tree.
      * @return static A configuration that reference the content of the sub-tree of the initial configuration.

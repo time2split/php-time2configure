@@ -12,6 +12,7 @@ use Time2Split\Help\Classes\NotInstanciable;
  *
  * @author Olivier Rodriguez (zuri)
  *
+ * @package time2configure\interpolation
  */
 final class Interpolators
 {

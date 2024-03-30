@@ -3,18 +3,25 @@
 namespace Time2Split\Config\Entry;
 
 use Time2Split\Config\Configuration;
+// phpdoc
+use Time2Split\Config\Entries;
 
 /**
+ * Consumes an entry.
+ * 
+ * A Consumer can be create with {@see Entries::consumeEntry()}.
+ * 
  * @template K
  * @template V
  * 
  * @author Olivier Rodriguez (zuri)
+ * @package time2configure\interpolation
  */
 interface Consumer
 {
 
     /**
-     * Consume a key and/or a value to do an action.
+     * Consumes an entry to do an action.
      *
      * @param Configuration<K,V> $config
      *            The configuration from/to map the key => value Entry.

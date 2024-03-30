@@ -6,7 +6,6 @@ namespace Time2Split\Config;
 
 use Time2Split\Config\Entry\Consumer;
 use Time2Split\Config\Entry\Map;
-use Time2Split\Config\Entry\MapKey;
 use Time2Split\Config\Entry\MapValue;
 use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\_private\TreeConfigHierarchy;
@@ -22,9 +21,10 @@ use Time2Split\Help\Classes\NotInstanciable;
 use Time2Split\Help\TreeArrays;
 
 /**
- *
+ * Functions on Configuration instances and factories.
+ * 
  * @author Olivier Rodriguez (zuri)
- *
+ * @package time2configure\configuration
  */
 final class Configurations
 {
@@ -73,7 +73,7 @@ final class Configurations
     // ========================================================================
 
     /**
-     * Make a configuration unmodifiable.
+     * Makes a configuration unmodifiable.
      *
      * The unmodifiable behaviour is implemented as a decorator wrapping around the the base configuration,
      * that is if the base configuration may have updates outside the unmodifiable decorator.
@@ -96,7 +96,7 @@ final class Configurations
     // TreeConfigBuilder facades
 
     /**
-     * Make a copy of the configuration tree.
+     * Makes a copy of the configuration tree.
      *
      * @param Configuration $config
      *            The configuration to copy from.
@@ -112,7 +112,7 @@ final class Configurations
     }
 
     /**
-     * Make a copy conserving the interpolation.
+     * Makes a copy conserving the interpolation.
      *
      * @param Configuration $config
      *            The configuration to copy from.
@@ -124,7 +124,7 @@ final class Configurations
     }
 
     /**
-     * Make a copy instance conserving the interpolator but not the values.
+     * Makes a copy instance conserving the interpolator but not the values.
      *
      * @param Configuration $config
      *            The configuration to copy from.
@@ -136,16 +136,15 @@ final class Configurations
     }
 
     /**
-     * Make a configuration from trees-structured arrays.
+     * Makes a configuration from trees-structured arrays.
      *
      * If some trees share some same branches then the last tree branches override the previous ones.
      *
-     * @template K
      * @template V
      * 
-     * @param array<K,V> ...$trees
+     * @param array<V> ...$trees
      *            The trees to consider.
-     * @return Configuration<K,V> A new Configuration instance.
+     * @return Configuration<string|int,V> A new Configuration instance.
      */
     public static function ofTree(array ...$trees): Configuration
     {
@@ -213,7 +212,7 @@ final class Configurations
      * @template V
      * 
      * @param Configuration<K,V> $dest
-     * @param array<K,V> ...$trees
+     * @param array<V> ...$trees
      */
     public static function mergeTree(Configuration $dest, array ...$trees): void
     {

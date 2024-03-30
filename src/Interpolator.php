@@ -7,19 +7,25 @@ use Time2Split\Help\Optional;
 /**
  * Allows to transform a simple value to a more complex operation.
  *
- * For instance, there is a text Interpolator implementation (Interpolators::recursive()) that parmits to detect ${key} element in a text
- * and substitute it by the $config[$key] value of the Configuration instance.
+ * An interpolator is associated to a configuration instance, and transforms automatically every value he can recognize
+ * to a compiled process wrapped in a {@see Interpolation}.
+ * This compilation is executed each time an interpolated value is accessed.
+ * 
+ * For instance, there is a text interpolator implementation ({@see Interpolators::recursive()}) that can detect '${key}' token element
+ * in a text string and make a compilation that substitute such a token by the $config[$key] value of the configuration instance when
+ * the string is accessed.
  *
  * @template V
  * @template I
  * 
  * @author Olivier Rodriguez (zuri)
+ * @package time2configure\interpolation
  */
 interface Interpolator
 {
 
     /**
-     * Compile a value if possible
+     * Compiles a value if possible
      *
      * @param V $value
      *            The value to compile
@@ -28,7 +34,7 @@ interface Interpolator
     public function compile($value): Optional;
 
     /**
-     * Execute the compilation (if set) and return the result
+     * Executes the compilation (if set) and return the result
      *
      * @param mixed $compilation
      *            The compilation to execute

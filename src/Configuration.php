@@ -5,13 +5,19 @@ namespace Time2Split\Config;
 use Time2Split\Config\Entry\ReadingMode;
 
 /**
- * Extends the TreeConfiguration with utilities methods mainly copied from Configurations.
+ * A TreeConfiguration with utilities methods.
+ * 
+ * This is the main class of the library.
+ * All implementations provided are Configuration instances.
+ * 
+ * Instanciations can only be made with methods from {@see Configurations}.
  *
  * @template K
  * @template V
  * @implements TreeConfiguration<K,V>
  * 
  * @author Olivier Rodriguez (zuri)
+ * @package time2configure\configuration
  */
 abstract class Configuration implements TreeConfiguration
 {
@@ -20,8 +26,6 @@ abstract class Configuration implements TreeConfiguration
      * Get an array representation of the entries.
      * 
      * @return array<V>
-     * 
-     * @source
      */
     public final function toArray(ReadingMode $mode = ReadingMode::Normal): array
     {
@@ -29,20 +33,9 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * Make a raw copy of the entries, that is conserve the value with interpolations.
-     * 
-     * @source
-     */
-    public final function rawCopy(): static
-    {
-        return $this->copy($this->getInterpolator());
-    }
-
-    /**
      * Get a raw value iterator.
-     * @return \Iterator<K,V|Interpolation<V>>
      * 
-     * @source
+     * @return \Iterator<K,V|Interpolation<V>>
      */
     public final function getRawValueIterator(): \Iterator
     {
@@ -50,6 +43,7 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
+     * Get a base value iterator.
      * @return \Iterator<K,V>
      * 
      * @source
@@ -60,8 +54,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * @param iterable<K,V>  ...$configs
-     * @source
+     * Add iterable entries to the configuration.
+     * 
+     * @param iterable<K,V>  ...$configs Iterables of (K => V) entries.
+     * @see Configurations::merge()
      */
     public final function merge(iterable ...$configs): static
     {
@@ -70,8 +66,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * @param array<K,V>  ...$trees
-     * @source
+     * Merge some trees to the configuration.
+     * 
+     * @param array<V>  ...$trees Some trees.
+     * @see Configurations::mergeTree()
      */
     public final function mergeTree(array ...$trees): static
     {
@@ -80,9 +78,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     *
-     * @param iterable<K,V>  ...$configs
-     * @source
+     * Does the unions with iterables.
+     * 
+     * @param iterable<K,V>  ...$configs Iterables of (K => V) entries
+     * @see Configurations::union()
      */
     public final function union(iterable ...$configs): static
     {
@@ -91,8 +90,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * @param K $offsets
-     * @source
+     * Unset some entries.
+     * 
+     * @param K $offsets Keys to drop.
+     * @see BaseConfiguration::offsetUnset()
      */
     public final function unsetFluent(...$offsets): static
     {
@@ -105,8 +106,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
+     * Remove some nodes (fluent api).
      * @param K $offsets
-     * @source
+     * @return static This configuration.
+     * @see BaseConfiguration::removeNode()
      */
     public final function removeNodeFluent(...$offsets): static
     {

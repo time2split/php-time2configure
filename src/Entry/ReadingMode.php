@@ -10,12 +10,16 @@ use Time2Split\Config\Interpolation;
  *
  * @author Olivier Rodriguez (zuri)
  * @see Interpolation
+ * @package time2configure\configuration
  */
 enum ReadingMode: int
 {
 
     /**
-     * Retrieves the interpolated value of an entry, or the value iteself if not an {@link Interpolation}.
+     * Retrieves the interpolated value of an entry, or the raw value itself if not an Interpolation.
+     * 
+     * This is also the value of ReadingMode::Normal
+     * (phpdoc don't seems to want to document this constant for now).
      */
     case Interpolate = 0;
 
@@ -25,14 +29,12 @@ enum ReadingMode: int
     case RawValue = 1;
 
     /**
-     * Retrieves either the {@link Interpolation} base value, or the value iteself if not an {@link Interpolation}.
+     * Retrieves either the interpolation base value, or the raw value itself if not an Interpolation.
      */
     case BaseValue = 2;
 
     /**
      * The normal configuration behaviour is to interpolate the entry values.
-     *
-     * @see ReadingMode::Interpolate
      */
     public const Normal = self::Interpolate;
 }

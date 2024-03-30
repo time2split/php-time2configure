@@ -139,7 +139,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     }
 
     /**
-     * @param K $offset
+     * @param ?K $offset
      */
     private function get($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {

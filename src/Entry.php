@@ -9,6 +9,7 @@ namespace Time2Split\Config;
  * @template V
  * 
  * @author zuri
+ * @package time2configure\configuration
  */
 final class Entry
 {

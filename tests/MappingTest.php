@@ -1,5 +1,7 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -10,8 +12,8 @@ use Time2Split\Config\Entries;
 use Time2Split\Config\Entry;
 use Time2Split\Config\Entry\Map;
 use Time2Split\Config\Entry\ReadingMode;
-use Time2Split\Config\Tests\Help\Producer;
-use Time2Split\Config\Tests\Help\Provided;
+use Time2Split\Help\Tests\DataProvider\Producer;
+use Time2Split\Help\Tests\DataProvider\Provided;
 
 /**
  *
@@ -59,7 +61,7 @@ final class MappingTest extends TestCase
 
     private static function getInstructionProvider(bool $read): array
     {
-        if (! $read) {
+        if (!$read) {
             $mapKey = self::mapKey(...);
             $mapVal = self::mapValue(...);
 

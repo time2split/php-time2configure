@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
+
 namespace Time2Split\Config;
 
 use Time2Split\Config\_private\AbstractTreeConfig;
 use Time2Split\Config\_private\TreeConfig;
-use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Help\Iterables;
 
 /**
@@ -62,7 +63,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
 
             if ($resetInterpolator != $this->interpolator) {
                 $this->setInterpolator($resetInterpolator);
-                $this->merge(Iterables::mapValue($config->getRawValueIterator(), self::getBaseValue(...)));
+                $this->merge($config->getBaseValueIterator());
             } else
                 $this->_rawCopy($config);
         } else
@@ -86,17 +87,14 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
      */
     public function emptyCopyOf(Configuration $config): self
     {
+        $config = Configurations::ensureDelimitedKeys($config);
         return $this->reset()
             ->setInterpolator($config->getInterpolator())
-            ->setKeyDelimiter($this->getKeyDelimiterOf($config))
+            ->setKeyDelimiter($config->getKeyDelimiter())
             ->clearContent();
     }
 
     // ========================================================================
-    private static function getKeyDelimiterOf(DelimitedKeys $config): ?string
-    {
-        return $config->getKeyDelimiter();
-    }
 
     private function clearContent(): self
     {
@@ -152,7 +150,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
      */
     public function setKeyDelimiter(string $delimiter = '.'): self
     {
-        $this->delimiter = $delimiter;
+        $this->resetKeyDelimiter($delimiter);
         return $this;
     }
 

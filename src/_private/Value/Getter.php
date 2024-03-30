@@ -1,4 +1,5 @@
 <?php
+
 namespace Time2Split\Config\_private\Value;
 
 /**
@@ -9,5 +10,5 @@ namespace Time2Split\Config\_private\Value;
 interface Getter
 {
 
-    public function get($subject, ...$data): mixed;
+    public function get(mixed $subject, mixed ...$data): mixed;
 }

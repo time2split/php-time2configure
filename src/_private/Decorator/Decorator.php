@@ -1,15 +1,21 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\_private\Decorator;
 
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
+use Time2Split\Config\Configurations;
 use Time2Split\Help\Optional;
 
 /**
- *
+ * @template K
+ * @template V
+ * @extends Configuration<K,V>
+ * 
  * @internal
  * @author Olivier Rodriguez (zuri)
  *
@@ -17,11 +23,14 @@ use Time2Split\Help\Optional;
 abstract class Decorator extends Configuration implements DelimitedKeys
 {
 
+    /**
+     * @var Configuration<K,V>&DelimitedKeys
+     */
     protected Configuration&DelimitedKeys $decorate;
 
-    public function __construct(Configuration&DelimitedKeys $decorate)
+    public function __construct(Configuration $decorate)
     {
-        $this->decorate = $decorate;
+        $this->decorate = Configurations::ensureDelimitedKeys($decorate);
     }
 
     public function copy(?Interpolator $interpolator = null): static
@@ -52,7 +61,7 @@ abstract class Decorator extends Configuration implements DelimitedKeys
     private function resetDecoration(Configuration $decorate): static
     {
         $ret = clone $this;
-        $ret->decorate = $decorate;
+        $ret->decorate = Configurations::ensureDelimitedKeys($decorate);
         return $ret;
     }
 
@@ -119,7 +128,7 @@ abstract class Decorator extends Configuration implements DelimitedKeys
 
     public function subTreeCopy($offset): static
     {
-        return $this->decorate->isPresent($offset);
+        return $this->resetDecoration($this->decorate->subTreeCopy($offset));
     }
 
     public function subTreeView($offset): static

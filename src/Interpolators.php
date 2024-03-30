@@ -1,4 +1,5 @@
 <?php
+
 namespace Time2Split\Config;
 
 use Time2Split\Config\_private\InterpolationReader;
@@ -16,7 +17,7 @@ final class Interpolators
 {
     use NotInstanciable;
 
-    private static $null;
+    private static Interpolator $null;
 
     /**
      * Corresponds to the null Pattern implementation, that is an Interpolator doing nothing.
@@ -27,7 +28,8 @@ final class Interpolators
      */
     public static function null(): Interpolator
     {
-        return self::$null ??= new class() implements Interpolator {
+        return self::$null ??= new class() implements Interpolator
+        {
 
             public function compile($value): Optional
             {
@@ -41,7 +43,7 @@ final class Interpolators
         };
     }
 
-    private static $recursive;
+    private static Interpolator $recursive;
 
     /**
      * An Interpolator that can substitute ${key} elements in a text by their corresponding value in the Configuration instance.
@@ -55,17 +57,18 @@ final class Interpolators
      */
     public static function recursive(): Interpolator
     {
-        return self::$recursive ??= new class() implements Interpolator {
+        return self::$recursive ??= new class() implements Interpolator
+        {
 
             public function compile($value): Optional
             {
-                if (! is_string($value))
+                if (!is_string($value))
                     return Optional::empty();
 
-                $reader = InterpolationReader::create();
+                $reader = new InterpolationReader();
                 $res = $reader->for($value);
 
-                if (! $res->isPresent())
+                if (!$res->isPresent())
                     return Optional::empty();
 
                 return Optional::of($res->get());

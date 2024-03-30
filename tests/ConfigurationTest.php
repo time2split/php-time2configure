@@ -1,12 +1,17 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\Tests;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Time2Split\Config\Configuration;
 use Time2Split\Config\Configurations;
 use Time2Split\Help\Arrays;
 use Time2Split\Help\Iterables;
+use Time2Split\Help\Tests\DataProvider\Producer;
+use Time2Split\Help\Tests\DataProvider\Provided;
 
 /**
  *
@@ -16,30 +21,37 @@ use Time2Split\Help\Iterables;
 final class ConfigurationTest extends TestCase
 {
 
-    public static function getConfigProviders(array ...$configs): array
+    public static function getConfigProvidersLabeled(array ...$configs): array
     {
-        $mconfigs = \array_merge_recursive(...$configs);
+        $mconfigs = \array_merge(...$configs);
         return [
-            'simple' => fn () => Configurations::ofTree($mconfigs),
-            'builder' => fn () => Configurations::builder()->mergeTree($mconfigs),
-            'childs' => function () use ($configs) {
-                $configs = \array_reverse($configs);
+            'simple' => new Provided('simple', [new Producer(fn () => Configurations::ofTree($mconfigs))]),
+            'builder' => new Provided('builder', [new Producer(fn () => Configurations::builder()->mergeTree($mconfigs))]),
+            'childs' => new Provided('childs', [
+                new Producer(function () use ($configs) {
+                    $configs = \array_reverse($configs);
 
-                $config = Configurations::ofTree(\array_pop($configs));
+                    $config = Configurations::ofTree(\array_pop($configs));
 
-                while (! empty($configs)) {
-                    $config = Configurations::emptyChild($config);
-                    $config->merge(Configurations::ofTree(\array_pop($configs)));
-                }
-                return $config;
-            },
-            'hierarchy' => fn () => Configurations::hierarchy(...\array_map(Configurations::ofTree(...), $configs))
+                    while (!empty($configs)) {
+                        $config = Configurations::emptyChild($config);
+                        $config->merge(Configurations::ofTree(\array_pop($configs)));
+                    }
+                    return $config;
+                })
+            ]), 'hierarchy' => new Provided('hierarchy', [
+                new Producer(fn () => Configurations::hierarchy(...\array_map(Configurations::ofTree(...), $configs)))
+            ])
         ];
     }
-
-    public static function configProvider(): array
+    public static function getConfigProviders(array ...$configs): array
     {
-        $ret = [];
+        return \array_values(self::getConfigProvidersLabeled(...$configs));
+    }
+
+    public static function configProvider(): iterable
+    {
+        $ret = new \AppendIterator();
 
         // ====================================================================
         $initial = [
@@ -68,17 +80,12 @@ final class ConfigurationTest extends TestCase
             'x'
         ];
 
-        $providers = self::getConfigProviders($initial);
+        $merger = Provided::merge(
+            self::getConfigProviders($initial),
+            [new Provided('1', [$flat, $absent])]
+        );
+        $ret->append($merger);
 
-        foreach ($providers as $provider)
-            $ret[] = [
-
-                [
-                    'provide' => $provider,
-                    'flat' => $flat,
-                    'absent' => $absent
-                ]
-            ];
         // ====================================================================
         $over = [
             'A' => 'vA',
@@ -104,45 +111,41 @@ final class ConfigurationTest extends TestCase
         $overAbsent = $absent;
         unset($overAbsent['b']);
 
-        $providers = self::getConfigProviders($initial, $over);
-        $ret['over/flat;hierarchy'] = [
-            [
-                'provide' => $providers['hierarchy'],
-                'flat' => $overFlat,
-                'absent' => $overAbsent,
-                'clear' => $flat
+        $providers = self::getConfigProvidersLabeled($initial, $over);
+
+        $ret->append(new \ArrayIterator([
+            'hierarchy/over-flat' => [
+                $providers['hierarchy']->data[0]->get(),
+                $overFlat,
+                $overAbsent,
+                $flat
+            ],
+            'child/over-flat' => [
+                $providers['childs']->data[0]->get(),
+                $overFlat,
+                $overAbsent,
+                $flat
             ]
-        ];
-        $ret['over/flat;child'] = [
-            [
-                'provide' => $providers['childs'],
-                'flat' => $overFlat,
-                'absent' => $overAbsent,
-                'clear' => $flat
-            ]
-        ];
+        ]));
 
         // ====================================================================
-        $providers = self::getConfigProviders($over, $initial);
+        $providers = self::getConfigProvidersLabeled($over, $initial);
         $overClear = $over;
         $overClear['a.b'] = $over['a']['b'];
-        unset($overClear['a']);
-        $ret['flat/over:hierarchy'] = [
-            [
-                'provide' => $providers['hierarchy'],
-                'flat' => $overFlat,
-                'absent' => $overAbsent,
-                'clear' => $overClear
+        $ret->append(new \ArrayIterator([
+            'hierarchy/flat-over' => [
+                $providers['hierarchy']->data[0]->get(),
+                $overFlat,
+                $overAbsent,
+                $overClear
+            ],
+            'flat/over;child' => [
+                $providers['childs']->data[0]->get(),
+                $overFlat,
+                $overAbsent,
+                $overClear
             ]
-        ];
-        $ret['flat/over;child'] = [
-            [
-                'provide' => $providers['childs'],
-                'flat' => $overFlat,
-                'absent' => $overAbsent,
-                'clear' => $overClear
-            ]
-        ];
+        ]));
 
         // ====================================================================
         return $ret;
@@ -150,19 +153,12 @@ final class ConfigurationTest extends TestCase
 
     private function assertArrayEquals(array $a, array $b)
     {
-        $this->assertTrue(Arrays::contentEquals($a, $b), sprintf("Expect\n%s but have\n%s", print_r($a, true), print_r($b, true)));
+        $this->assertTrue(Arrays::sameEntries($a, $b), sprintf("Expect\n%s but have\n%s", print_r($a, true), print_r($b, true)));
     }
 
     #[DataProvider('configProvider')]
-    public function testRead(array $args): void
+    public function testRead(Configuration $baseConfig, $flatResult, $absent): void
     {
-        [
-            'provide' => $provide,
-            'flat' => $flatResult,
-            'absent' => $absent
-        ] = $args;
-
-        $baseConfig = $provide();
         $interpolator = $baseConfig->getInterpolator();
 
         $clone = clone $baseConfig;
@@ -224,9 +220,10 @@ final class ConfigurationTest extends TestCase
         }
     }
 
-    // ========================================================================
-    public static function subConfigProvider(): array
+    // // ========================================================================
+    public static function subConfigProvider(): iterable
     {
+        $ret = new \AppendIterator();
         $aconfig = [
             'a.a' => 1,
             'a.b' => 2
@@ -237,76 +234,57 @@ final class ConfigurationTest extends TestCase
             'b.b' => 20
         ];
         $sub = fn ($nullResult) => [
+            [null, $nullResult],
             [
-                null,
-                $nullResult
-            ],
-            [
-                'a',
-                [
+                'a', [
                     'a' => 1,
                     'b' => 2
                 ]
             ],
             [
-                'b',
-                [
+                'b',  [
                     'a.a' => 10,
                     'a.b' => 11,
                     'b' => 20
                 ]
             ],
             [
-                'b.a',
-                [
+                'b.a', [
                     'a' => 10,
                     'b' => 11
                 ]
             ]
         ];
-        $ret['a/b'] = [
-            [
-                'configs' => [
-                    $aconfig,
-                    $bconfig
-                ],
-                'sub' => $sub(\array_merge($aconfig, $bconfig))
-            ]
-        ];
-        $ret['b/a'] = [
-            [
-                'configs' => [
-                    $bconfig,
-                    $aconfig
-                ],
-                'sub' => $sub(\array_merge($bconfig, $aconfig))
-            ]
-        ];
+        $ab = \array_merge($aconfig, $bconfig);
+        $merger = Provided::merge(
+            self::getConfigProviders($aconfig, $bconfig),
+            [new Provided('ab', [$sub($ab)])]
+        );
+        $ret->append($merger);
+
+        $ba = \array_merge($bconfig, $aconfig);
+        $merger = Provided::merge(
+            self::getConfigProviders($bconfig, $aconfig),
+            [new Provided('ba', [$sub($ba)])]
+        );
+        $ret->append($merger);
         return $ret;
     }
 
     #[DataProvider('subConfigProvider')]
-    public function testSubTreeCopy(array $args): void
+    public function testSubTreeCopy(Configuration $config, array $sub): void
     {
-        $configs = $args['configs'];
-        $sub = $args['sub'];
-        $providers = self::getConfigProviders(...$configs);
-
-        foreach ($providers as $provider) {
-            $config = $provider();
-
-            foreach ($sub as [
-                $k,
-                $subResult
-            ]) {
-                $subConfig = $config->subTreeCopy($k);
-                $this->assertSame($subResult, $subConfig->toArray());
-            }
+        foreach ($sub as [
+            $k,
+            $subResult
+        ]) {
+            $subConfig = $config->subTreeCopy($k);
+            $this->assertSame($subResult, $subConfig->toArray());
         }
     }
 
-    // ========================================================================
-    public static function selectProvider(): array
+    // // ========================================================================
+    public static function selectProvider(): iterable
     {
         $aconfig = [
             'a.a' => 1,
@@ -322,77 +300,46 @@ final class ConfigurationTest extends TestCase
             'b.a.b' => 11
         ];
         $sub = fn ($nullResult) => [
-            [
-                null,
-                $nullResult
-            ],
-            [
-                'a',
-                $aconfig
-            ],
-            [
-                'b',
-                $bconfig
-            ],
-            [
-                'b.a',
-                $baresult
-            ]
+            [null, $nullResult],
+            ['a', $aconfig],
+            ['b', $bconfig],
+            ['b.a', $baresult]
         ];
-        $ret['a/b'] = [
-            /* 'configs' => */
-            [
-                $aconfig,
-                $bconfig
-            ],
-            /*'sub' =>*/
-            $sub(\array_merge($aconfig, $bconfig))
-        ];
-        $ret['b/a'] = [
-            /* 'configs' => */
-            [
-                $bconfig,
-                $aconfig
-            ],
-            /*'sub' =>*/
-            $sub(\array_merge($bconfig, $aconfig))
-        ];
+        $ret = new \AppendIterator();
+        $ab = \array_merge($aconfig, $bconfig);
+        $ba = \array_merge($bconfig, $aconfig);
+
+        $ret->append(Provided::merge(
+            self::getConfigProviders($aconfig, $bconfig),
+            [new Provided('ab', [$sub($ab)])]
+        ));
+        $ret->append(Provided::merge(
+            self::getConfigProviders($bconfig, $aconfig),
+            [new Provided('ba', [$sub($ba)])]
+        ));
         return $ret;
     }
 
     #[DataProvider('selectProvider')]
-    public function testSelect(array $configs, array $sub): void
+    public function testSelect(Configuration $config, array $sub): void
     {
-        $providers = self::getConfigProviders(...$configs);
-
-        foreach ($providers as $provider) {
-            $config = $provider();
-
-            foreach ($sub as [
-                $k,
-                $subResult
-            ]) {
-                $subConfig = $config->copyBranches($k);
-                $this->assertSame($subResult, $subConfig->toArray(), "select $k");
-            }
+        foreach ($sub as [
+            $k,
+            $subResult
+        ]) {
+            $subConfig = $config->copyBranches($k);
+            $this->assertSame($subResult, $subConfig->toArray(), "select $k");
         }
     }
 
     public static function subTreeViewProvider(): \Generator
     {
-        return (function () {
-            foreach (self::getConfigProviders([]) as $k => $provider)
-                yield $k => [
-                    $provider
-                ];
-        })();
+        return Provided::merge(self::getConfigProviders([]));
     }
 
     #[DataProvider('subTreeViewProvider')]
-    public function testSubTreeView(\Closure $provider): void
+    public function testSubTreeView(Configuration $config): void
     {
-        $config = $provider();
-
         $view = $config->subTreeView('a');
 
         $this->assertFalse($config->isPresent('a'));

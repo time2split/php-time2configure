@@ -1,4 +1,5 @@
 <?php
+
 namespace Time2Split\Config;
 
 use Time2Split\Help\Optional;
@@ -9,8 +10,10 @@ use Time2Split\Help\Optional;
  * For instance, there is a text Interpolator implementation (Interpolators::recursive()) that parmits to detect ${key} element in a text
  * and substitute it by the $config[$key] value of the Configuration instance.
  *
+ * @template V
+ * @template I
+ * 
  * @author Olivier Rodriguez (zuri)
- *
  */
 interface Interpolator
 {
@@ -18,9 +21,9 @@ interface Interpolator
     /**
      * Compile a value if possible
      *
-     * @param mixed $value
+     * @param V $value
      *            The value to compile
-     * @return Optional An optional filled by the compilation
+     * @return Optional<mixed> An optional filled by the compilation
      */
     public function compile($value): Optional;
 
@@ -29,9 +32,9 @@ interface Interpolator
      *
      * @param mixed $compilation
      *            The compilation to execute
-     * @param Configuration $config
+     * @param Configuration<mixed,V> $config
      *            The Configuration instance to consider
-     * @return mixed The result of the execution of the compilation
+     * @return I The result of the execution of the compilation
      */
     public function execute($compilation, Configuration $config): mixed;
 }

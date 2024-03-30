@@ -1,4 +1,5 @@
 <?php
+
 namespace Time2Split\Config\Entry;
 
 use Time2Split\Config\Interpolation;
@@ -8,10 +9,6 @@ use Time2Split\Config\Interpolation;
  * Possible modes when accessing an entry value of a configuration.
  *
  * @author Olivier Rodriguez (zuri)
- * @see ReadingMode::Interpolate
- * @see ReadingMode::RawValue
- * @see ReadingMode::BaseValue
- * @see ReadingMode::Normal
  * @see Interpolation
  */
 enum ReadingMode: int
@@ -39,6 +36,3 @@ enum ReadingMode: int
      */
     public const Normal = self::Interpolate;
 }
-// Avoid IDE Warnings
-return;
-Interpolation::class;

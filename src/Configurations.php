@@ -1,5 +1,7 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config;
 
 use Time2Split\Config\Entry\Consumer;
@@ -12,11 +14,12 @@ use Time2Split\Config\_private\Decorator\ConsumerDecorator;
 use Time2Split\Config\_private\Decorator\MapDecorator;
 use Time2Split\Config\_private\Decorator\UnmodifiableDecorator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
-use Time2Split\Help\Arrays;
+use Time2Split\Config\_private\TreeConfig\TreeStorage;
 use Time2Split\Help\Optional;
 use Time2Split\Help\Set;
 use Time2Split\Help\Sets;
 use Time2Split\Help\Classes\NotInstanciable;
+use Time2Split\Help\TreeArrays;
 
 /**
  *
@@ -35,6 +38,34 @@ final class Configurations
     public static function builder(): TreeConfigurationBuilder
     {
         return new TreeConfigurationBuilder();
+    }
+
+    /**
+     * For now the library attempts that every Configuration is a DelimitedKeys implementation.
+     * Extending a Configuration is not really a possible feature.
+     * In the future this constraint will disapear.
+     * @internal
+     */
+    public static function ensureDelimitedKeys(Configuration $config): DelimitedKeys&Configuration
+    {
+        if (!($config instanceof DelimitedKeys))
+            // For now its a library constraint
+            // TODO: drop this limitation
+            throw new \Error('Configuration must implements DelimitedKeys');
+
+        return $config;
+    }
+    /**
+     * @internal
+     */
+    public static function ensureTreeStorage(Configuration $config): TreeStorage&Configuration
+    {
+        if (!($config instanceof TreeStorage))
+            // For now its a library constraint
+            // TODO: drop this limitation
+            throw new \Error('Configuration must implements TreeStorage');
+
+        return $config;
     }
 
     // ========================================================================
@@ -69,11 +100,11 @@ final class Configurations
      *
      * @param Configuration $config
      *            The configuration to copy from.
-     * @param Interpolator $resetInterpolator
+     * @param Interpolator $interpolator
      *            If not set (ie. null) the copy will contains the interpolated value of the configuration tree.
      *            If set the copy will use this interpolator on the raw base value to create a new interpolated configuration.$this
      *            Note that the interpolator may be the same as $config, in that case it means that the base interpolation is conserved.
-     * @return self A new Configuration instance.
+     * @return Configuration A new Configuration instance.
      */
     public static function treeCopyOf(Configuration $config, Interpolator $interpolator = null): Configuration
     {
@@ -85,7 +116,7 @@ final class Configurations
      *
      * @param Configuration $config
      *            The configuration to copy from.
-     * @return self A new Configuration instance.
+     * @return Configuration A new Configuration instance.
      */
     public static function rawTreeCopyOf(Configuration $config): Configuration
     {
@@ -97,7 +128,7 @@ final class Configurations
      *
      * @param Configuration $config
      *            The configuration to copy from.
-     * @return self A new Configuration instance.
+     * @return Configuration A new Configuration instance.
      */
     public static function emptyTreeCopyOf(Configuration $config): Configuration
     {
@@ -109,9 +140,12 @@ final class Configurations
      *
      * If some trees share some same branches then the last tree branches override the previous ones.
      *
-     * @param array ...$trees
+     * @template K
+     * @template V
+     * 
+     * @param array<K,V> ...$trees
      *            The trees to consider.
-     * @return Configuration A new Configuration instance.
+     * @return Configuration<K,V> A new Configuration instance.
      */
     public static function ofTree(array ...$trees): Configuration
     {
@@ -129,9 +163,12 @@ final class Configurations
      *
      * Note that the parent instance is assigned as it (ie. reference), that is it may always be modified outside the hierarchy instance.
      *
-     * @param Configuration $parent
+     * @template K
+     * @template V
+     * 
+     * @param Configuration<K,V> $parent
      *            The parent configuration to use.
-     * @return Configuration A new Configuration instance where the parent tree is not modifiable.
+     * @return Configuration<K,V> A new Configuration instance where the parent tree is not modifiable.
      */
     public static function emptyChild(Configuration $parent): Configuration
     {
@@ -146,11 +183,11 @@ final class Configurations
      * The order of the parents in the sequence is signifiant: the last parents shadowed the previous in case of common branches.
      * Note that the parents instances are assigned as it (ie. references), that is they may always be modified outside the hierarchy instance.
      *
-     * @param Configuration $parent
+     * @param Configuration<mixed,mixed> $parent
      *            The first parent of the sequence.
-     * @param Configuration ...$childs
+     * @param Configuration<mixed,mixed> ...$childs
      *            More parents of the sequence.
-     * @return Configuration A new Configuration hierarchy instance.
+     * @return Configuration<mixed,mixed> A new Configuration hierarchy instance.
      */
     public static function hierarchy(Configuration $parent, Configuration ...$childs): Configuration
     {
@@ -171,17 +208,31 @@ final class Configurations
      * Merge all levels of tree-shaped data source within a Configuration instance destination.
      * The merge occurs recursively with the sub-data of the source.
      * If an array sub-data is a list, then the list is considered as a simple value and the recursion stop.
+     * 
+     * @template K
+     * @template V
+     * 
+     * @param Configuration<K,V> $dest
+     * @param array<K,V> ...$trees
      */
-    public static function mergeTree(Configuration&DelimitedKeys $dest, array ...$trees): void
+    public static function mergeTree(Configuration $dest, array ...$trees): void
     {
+        $dest = self::ensureDelimitedKeys($dest);
+
         foreach ($trees as $tree)
-            Arrays::linearArrayRecursive($dest, $tree, $dest->pathToOffset(...));
+            TreeArrays::linearArrayRecursive($dest, $tree, $dest->pathToOffset(...));
     }
 
     /**
      * Copy the entries of a sequence data source into a Configuration instance destination,
      * that is copy all the key => value pairs from $src into $dest.
      * If an entry to copy is already present in the configuration then the entry is copied and override the previous entry.
+     * 
+     * @template K
+     * @template V
+     * 
+     * @param Configuration<K,V> $dest
+     * @param iterable<K,V> ...$sources
      */
     public static function merge(Configuration $dest, iterable ...$sources): void
     {
@@ -194,13 +245,19 @@ final class Configurations
      * Copy the entries of a sequence data source into a Configuration instance destination,
      * that is copy all the key => value pairs from $src into $dest.
      * If an entry to copy is already present in the configuration then the entry is not copied, the first entry stay in place.
+     * 
+     * @template K
+     * @template V
+     * 
+     * @param Configuration<K,V> $dest
+     * @param iterable<K,V> ...$sources
      */
     public static function union(Configuration $dest, iterable ...$sources): void
     {
         foreach ($sources as $src)
             // @TODO maybe better with a method $dest->setIfAbsent()
             foreach ($src as $k => $v)
-                if (! $dest->isPresent($k))
+                if (!$dest->isPresent($k))
                     $dest[$k] = $v;
     }
 
@@ -210,16 +267,20 @@ final class Configurations
 
     /**
      * Decorate a configuration to do an action when a value is read (only with interpolation).
+     * 
+     * @template K
+     * @template V
      *
-     * @param Configuration $config
+     * @param Configuration<K,V> $config
      *            The base configuration to decorate.
-     * @param Consumer $do
+     * @param Consumer<K,V> $do
      *            The action to do.
-     * @return Configuration A new configuration instance wrapping the base configuration.
+     * @return Configuration<K,V>  A new configuration instance wrapping the base configuration.
      */
     public static function doOnRead(Configuration $config, Consumer $do): Configuration
     {
-        return new class($config, $do) extends ConsumerDecorator {
+        return new class($config, $do) extends ConsumerDecorator
+        {
 
             public function offsetGet($key, ReadingMode $mode = ReadingMode::Normal): mixed
             {
@@ -257,8 +318,16 @@ final class Configurations
     // ========================================================================
     // MAPPING
     // ========================================================================
+
+    /**
+     * @var Set<ReadingMode>
+     */
     private static Set $defaultModes;
 
+    /**
+     * @param iterable<ReadingMode> $list
+     * @return Set<ReadingMode>
+     */
     private static function getReadingModeSet(?iterable $list): Set
     {
         if ($list instanceof Set)
@@ -275,20 +344,31 @@ final class Configurations
     /**
      * Decorate a configuration to do an mapping when a value is read.
      *
-     * @param Configuration $config
+     * @template K
+     * @template V
+     * @template MV
+     * 
+     * @param Configuration<K,V> $config
      *            The base configuration to decorate.
-     * @param Map $map
+     * @param MapValue<K,V,MV> $map
      *            The mapping to do.
-     * @param ?iterable[ReadingMode] $mapOnReadingMode
+     * @param ?iterable<ReadingMode> $mapOnReadingMode
      *            Only do the mapping for the specified {@link ReadingMode}s.
      *            If not set then the only allowed mode is {@link ReadingMode::Normal}
-     * @return Configuration A new configuration instance wrapping the base configuration.
+     * @return Configuration<K,MV> A new configuration instance wrapping the base configuration.
      */
     public static function mapOnRead(Configuration $config, MapValue $map, iterable $mapOnReadingMode = null): Configuration
     {
-        return new class($config, $map, self::getReadingModeSet($mapOnReadingMode)) extends MapDecorator {
+        return new class($config, $map, self::getReadingModeSet($mapOnReadingMode)) extends MapDecorator
+        {
 
-            public function __construct($decorate, $map, private readonly Set $mapOnReadingMode)
+            /**
+             * @param Configuration<K,V> $decorate
+             * @param MapValue <K,V,MV> $map 
+             * 
+             * @param Set<ReadingMode> $mapOnReadingMode
+             */
+            public function __construct(Configuration $decorate, MapValue $map, private readonly Set $mapOnReadingMode)
             {
                 parent::__construct($decorate, $map);
             }
@@ -305,7 +385,7 @@ final class Configurations
 
             public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator
             {
-                if (! $this->mapOnReadingMode[$mode])
+                if (!$this->mapOnReadingMode[$mode])
                     yield from $this->decorate->getIterator($mode);
                 else {
 
@@ -320,7 +400,7 @@ final class Configurations
             {
                 $item = $this->decorate->getOptional($key, $mode);
 
-                if (! $this->mapOnReadingMode[$mode])
+                if (!$this->mapOnReadingMode[$mode])
                     return $item;
 
                 $value = $item->orElse(null);
@@ -333,15 +413,21 @@ final class Configurations
     /**
      * Decorate a configuration to do a mapping on key => value entry before their assignment.
      *
-     * @param Configuration $config
+     * @template K
+     * @template V
+     * @template MK
+     * @template MV
+     * 
+     * @param Configuration<K,V> $config
      *            The base configuration to decorate.
-     * @param MapKey|MapValue $map
+     * @param Map<K,V,MK,MV> $map
      *            The mapping to do on an entry before its storage.
-     * @return Configuration A new configuration instance wrapping the base configuration.
+     * @return Configuration<MK,MV> A new configuration instance wrapping the base configuration.
      */
     public static function mapOnSet(Configuration $config, Map $map): Configuration
     {
-        return new class($config, $map) extends MapDecorator {
+        return new class($config, $map) extends MapDecorator
+        {
 
             public function offsetSet($key, $value): void
             {
@@ -354,15 +440,19 @@ final class Configurations
     /**
      * Decorate a configuration to do an action when an entry is unset (the entry may be absent).
      *
-     * @param Configuration $config
+     * @template K
+     * @template V
+
+     * @param Configuration<K,V> $config
      *            The base configuration to decorate.
-     * @param Consumer $do
+     * @param Consumer<K,V> $do
      *            The mapping to do.
-     * @return Configuration A new configuration instance wrapping the base configuration.
+     * @return Configuration<K,V> A new configuration instance wrapping the base configuration.
      */
     public static function doOnUnset(Configuration $config, Consumer $do): Configuration
     {
-        return new class($config, $do) extends ConsumerDecorator {
+        return new class($config, $do) extends ConsumerDecorator
+        {
 
             public function offsetUnset($key): void
             {

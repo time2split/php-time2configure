@@ -1,11 +1,16 @@
 <?php
+
 namespace Time2Split\Config\Entry;
 
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Entry;
 
 /**
- *
+ * @template K
+ * @template V
+ * @template MK
+ * @template MV
+ * 
  * @author Olivier Rodriguez (zuri)
  *
  */
@@ -15,18 +20,20 @@ interface Map
     /**
      * Map a key and/or a value to a new one.
      *
-     * @param Configuration $config
+     * @param Configuration<K,V> $config
      *            The configuration from/to map the key => value Entry.
-     * @param mixed $key
+     * @param K $key
      *            The key to map.
-     * @param mixed $value
+     * @param V $value
      *            The value to map.
-     * @return Entry The produced newkey => newvalue entry.
+     * @return Entry<MK,MV> The produced (newkey => newvalue) entry.
      */
     public function map(Configuration $config, $key, $value): Entry;
 
     /**
-     * View the Map as a {@source Consumer} (eg ignore its result).
+     * View the Map as a consumer (eg ignore its result).
+     * 
+     * @returm Consumer<K,V>
      */
     public function asConsumer(): Consumer;
 }

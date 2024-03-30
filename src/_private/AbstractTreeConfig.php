@@ -1,5 +1,7 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configuration;
@@ -7,40 +9,57 @@ use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\_private\TreeConfig\TreeStorage;
-use Time2Split\Help\Arrays;
 use Time2Split\Help\Optional;
 use Time2Split\Config\Entries;
 use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Help\Iterables;
+use Time2Split\Help\TreeArrays;
 
 /**
  *
  * @internal
+ * 
+ * @template K
+ * @template V
+ * @template I
+ * @extends Configuration<K,V>
+ * @implements TreeStorage<K,V>
+ * 
  * @author Olivier Rodriguez (zuri)
- *
  */
 abstract class AbstractTreeConfig extends Configuration implements TreeStorage, DelimitedKeys
 {
 
+    /**
+     * @var non-empty-string
+     */
     protected string $delimiter;
 
+    /**
+     * @var Interpolator<V,I>
+     */
     protected Interpolator $interpolator;
 
+    /**
+     * @var array<K,V>
+     */
     protected array $storage;
 
     private int $count;
 
     // ========================================================================
+
+    /**
+     * @param Interpolator<V,I> $interpolator
+     * @param array<K,V> $storage
+     */
     protected function __construct(string $delimiter, Interpolator $interpolator, array $storage = [])
     {
-        $this->delimiter = $delimiter;
+        $this->resetKeyDelimiter($delimiter);
         $this->interpolator = $interpolator;
         $this->storage = $storage;
         $this->count = 0;
     }
-
-    protected static function getBaseValue($val)
-    {}
 
     protected function copyToAbstract(AbstractTreeConfig $dest, ?Interpolator $resetInterpolator): void
     {
@@ -75,25 +94,47 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         return $this->delimiter;
     }
 
+    protected function resetKeyDelimiter(string $delimiter = '.'): void
+    {
+        if (empty($delimiter))
+            throw new \InvalidArgumentException('Delimiter must be a non-empty-string');
+
+        $this->delimiter = $delimiter;
+    }
+
+    /**
+     * @param array<mixed> $path
+     */
     public function pathToOffset(array $path): string
     {
         return \implode($this->getKeyDelimiter(), $path);
     }
 
+    /**
+     * @return array<K,V>
+     */
     public function getTreeStorage(): array
     {
         return $this->storage;
     }
 
     // ========================================================================
+
+    /**
+     * @return array<int,string>
+     */
     private function explodePath(?string $key): array
     {
-        if (! isset($key))
+        if (!isset($key))
             return [];
 
         return \explode($this->delimiter, $key);
     }
 
+    /**
+     * @param array<string> $offsets
+     * @return array<int,string>
+     */
     private function deduplicateOffsets(array $offsets): array
     {
         if (\count($offsets) < 2)
@@ -104,10 +145,10 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         $k = \array_pop($offsets);
         $ret[] = $k;
 
-        while (! empty($offsets)) {
+        while (!empty($offsets)) {
             $kk = (string) \array_pop($offsets);
 
-            if (! \str_starts_with($kk, $k)) {
+            if (!\str_starts_with($kk, $k)) {
                 $ret[] = $kk;
                 $k = $kk;
             }
@@ -115,48 +156,63 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         return $ret;
     }
 
-    private function makeUserPath($key)
+    /**
+     * @param ?K $key
+     */
+    private function makeUserPath($key): string
     {
         return "$key{$this->delimiter}";
     }
 
+    /**
+     * @param array<int,string> $path
+     */
     private function &followPath(array $path): mixed
     {
-        return \Time2Split\Help\Arrays::follow($this->storage, $path, TreeConfigSpecial::absent);
+        return \Time2Split\Help\TreeArrays::follow($this->storage, $path, TreeConfigSpecial::absent);
     }
 
-    private function &followOffset($offset): mixed
+    private function &followOffset(mixed $offset): mixed
     {
         return $this->followPath($this->explodePath($offset));
     }
 
-    private function getUpdateList($offset, $value): array
+    /**
+     * @param V|Interpolation<V>|null $value
+     * @return array<int,mixed>
+     */
+    private function getUpdateList(mixed $offset, $value): array
     {
         $path = $this->explodePath($offset);
-        return \Time2Split\Help\Arrays::pathToRecursiveList($path, $value);
-    }
-
-    private function interpolate($value): mixed
-    {
-        if (! ($value instanceof Interpolation))
-            return $value;
-
-        return $this->interpolator->execute($value->compilation, $this);
+        return \Time2Split\Help\TreeArrays::pathToRecursiveList($path, $value);
     }
 
     // ========================================================================
-    private function updateOnUnexists(&$data, $k, $v): void
+
+    /**
+     * @param array<K,V> &$data
+     * @param K $k
+     * @param V $v
+     */
+    private function updateOnUnexists(array &$data, $k, $v): void
     {
-        $this->count ++;
+        $this->count++;
         $data[$k] = $v;
     }
 
-    private function setStoredValue($offset, $value): void
+    /**
+     * @param V|Interpolation<V> $value
+     */
+    private function setStoredValue(mixed $offset, $value): void
     {
         $update = $this->getUpdateList($offset, $value);
-        \Time2Split\Help\Arrays::updateRecursive($update, $this->storage, $this->updateOnUnexists(...));
+        \Time2Split\Help\TreeArrays::updateRecursive($update, $this->storage, $this->updateOnUnexists(...));
     }
 
+    /**
+     * @param ?K $offset
+     * @param V $value
+     */
     // For external/user access
     private function set($offset, $value): void
     {
@@ -164,17 +220,23 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         $compilation = $this->interpolator->compile($value);
 
         if ($compilation->isPresent())
-            $value = new Interpolation((string) $value, $compilation->get());
+            $value = new Interpolation($value, $compilation->get());
 
         $this->setStoredValue($offset, $value);
     }
 
+    /**
+     * @param K $offset
+     */
     private function getRawValue($offset): mixed
     {
         $offset = $this->makeUserPath($offset);
         return $this->followOffset($offset);
     }
 
+    /**
+     * @param K $offset
+     */
     private function get($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
         $rawValue = $this->getRawValue($offset);
@@ -185,11 +247,15 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         return Entries::valueOf($rawValue, $this, $mode);
     }
 
+    /**
+     * @param K $offset
+     */
     public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
     {
         $rawValue = $this->getRawValue($offset);
 
         if ($rawValue === TreeConfigSpecial::absent)
+            /** @var Optional<V> */
             return Optional::empty();
 
         return Optional::of(Entries::valueOf($rawValue, $this, $mode));
@@ -205,13 +271,16 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         return $this->followOffset($offset) !== TreeConfigSpecial::absent;
     }
 
+    /**
+     * @param K $offset
+     */
     private function unset($offset): void
     {
         $path = $this->explodePath($offset);
         $val = &$this->followPath($path);
 
         if (\is_array($val) && \array_key_exists('', $val)) {
-            $this->count --;
+            $this->count--;
             unset($val['']);
         }
     }
@@ -219,31 +288,43 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     public function removeNode($offset): void
     {
         $path = $this->explodePath($offset);
+
+        if (empty($path))
+            return;
+
         $last = \array_pop($path);
         $val = &$this->followPath($path);
 
         if (\is_array($val) && \array_key_exists($last, $val)) {
-            $this->count -= Arrays::nb_branches($val[$last]);
+            $this->count -= TreeArrays::nb_branches($val[$last]);
             unset($val[$last]);
         }
     }
 
     // ========================================================================
+    /**
+     * @param K $offset
+     */
     private function &createIfNotPresent($offset): mixed
     {
         $ref = [];
         $update = $this->getUpdateList($offset, null);
 
-        \Time2Split\Help\Arrays::updateRecursive($update, $this->storage, //
-        self::updateOnUnexists(...), //
-        null, //
-        function (&$aref) use (&$ref) {
-            $ref[] = &$aref;
-        });
+        \Time2Split\Help\TreeArrays::updateRecursive(
+            $update,
+            $this->storage, //
+            self::updateOnUnexists(...), //
+            null, //
+            function (&$aref) use (&$ref) {
+                $ref[] = &$aref;
+            }
+        );
         return $ref[0];
     }
 
-    // Unused
+    /**
+     * @param K $offset
+     */
     private function &getReference($offset): mixed
     {
         return $this->createIfNotPresent($offset);
@@ -322,15 +403,20 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     /**
      * Retrieves the raw entries of the configuration.
      *
-     * @return iterable The entry sequence of the configuration.
+     * @return \Iterator<K,V|Interpolation<V>> The entry sequence of the configuration.
      */
-    protected function getRawEntries(): iterable
+    protected function getRawEntries(): \Iterator
     {
         return $this->rawEntriesOf($this->storage);
     }
 
-    private function rawEntriesOf(array $data): \Generator
+    /**
+     * @param array<K,V|Interpolation<V>> $data
+     * @return \Iterator<K,V|Interpolation<V>>
+     */
+    private function rawEntriesOf(array $data): \Iterator
     {
+        /** @var array<K,V|Interpolation<V>> $v*/
         foreach ($data as $k => $v) {
 
             if (\is_array($v)) {
@@ -345,12 +431,14 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     /**
-     *
-     * {@inheritdoc} @ internal
+     * 
      * @internal It uses {@link AbstractTreeConfig::getRawEntries()} to retrieve the raw entries.
+     * 
+     * @return \Iterator<K,V|Interpolation<V>>
+     * 
      * @see \Time2Split\Config\BaseConfiguration::getIterator()
      */
-    final public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Generator
+    final public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator
     {
         return Entries::entriesOf($this->getRawEntries(), $this, $mode);
     }

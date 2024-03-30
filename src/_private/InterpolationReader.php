@@ -1,34 +1,19 @@
 <?php
+
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\_private\Value\Getters;
 
+/**
+ * Reader able to detect {offset} interpolation tokens in a text string.
+ */
 final class InterpolationReader
 {
 
-    private array $groups;
-
-    private function __construct(array $groups)
-    {
-        $this->groups = $groups;
-
-        foreach ($groups as $v) {
-            if (\is_array($v) || $v instanceof \ArrayAccess || \is_callable($v))
-                continue;
-
-            throw new \Exception(__class__ . " Invalid value: " . print_r($v, true));
-        }
-    }
-
-    public static function create(array $groups = []): self
-    {
-        return new self($groups);
-    }
-
-    public function getGroups(): array
-    {
-        return $this->groups;
-    }
+    /**
+     * @var resource
+     */
+    private mixed $fp;
 
     public function for(mixed $text): \Time2Split\Help\Optional
     {
@@ -45,7 +30,7 @@ final class InterpolationReader
             }
             $get = $this->nextGetter();
 
-            if (! empty($get)) {
+            if (!empty($get)) {
                 $getters[] = Getters::fromClosure($get);
                 $update = true;
             }
@@ -69,8 +54,6 @@ final class InterpolationReader
         return \Time2Split\Help\Optional::of($v);
     }
 
-    private $fp;
-
     private function nextString(): string
     {
         return \Time2Split\Help\Streams::streamGetChars($this->fp, fn ($c) => $c !== '$');
@@ -81,10 +64,10 @@ final class InterpolationReader
         \Time2Split\Help\Streams::streamSkipChars($this->fp, \ctype_space(...));
     }
 
-    private function ungetc(): bool
-    {
-        return \Time2Split\Help\Streams::streamUngetc($this->fp);
-    }
+    // private function ungetc(): bool
+    // {
+    //     return \Time2Split\Help\Streams::streamUngetc($this->fp);
+    // }
 
     private function nextChar(): string|false
     {
@@ -98,11 +81,11 @@ final class InterpolationReader
         return \Time2Split\Help\Streams::streamGetChars($this->fp, fn ($c) => \ctype_alnum($c) || $c === '.' || $c === '_');
     }
 
-    private function nextWord(): string
-    {
-        $this->skipSpaces();
-        return \Time2Split\Help\Streams::streamGetChars($this->fp, fn ($c) => \ctype_alnum($c) || $c === '=' || $c === '.');
-    }
+    // private function nextWord(): string
+    // {
+    //     $this->skipSpaces();
+    //     return \Time2Split\Help\Streams::streamGetChars($this->fp, fn ($c) => \ctype_alnum($c) || $c === '=' || $c === '.');
+    // }
 
     private function nextGetter(): ?\Closure
     {
@@ -115,7 +98,7 @@ final class InterpolationReader
             $state = \array_pop($states);
 
             switch ($state) {
-                case - 1:
+                case -1:
                     return null;
 
                 case /* Init */ 0:
@@ -124,7 +107,7 @@ final class InterpolationReader
                     if ($c === '$')
                         \array_push($states, 1);
                     else
-                        \array_push($states, - 1);
+                        \array_push($states, -1);
                     break;
 
                 case /* Interpolation start */ 1:
@@ -135,7 +118,7 @@ final class InterpolationReader
                         \array_push($states, 20);
                         // \array_push($states, 10);
                     } else
-                        \array_push($states, - 1);
+                        \array_push($states, -1);
                     break;
 
                 case /* Interpolation end */ 2:
@@ -144,7 +127,7 @@ final class InterpolationReader
                     if ($c === '}')
                         return $interpolation;
                     else
-                        \array_push($states, - 1);
+                        \array_push($states, -1);
                     break;
 
                 case /* Read a key */ 20:

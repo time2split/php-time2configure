@@ -1,20 +1,26 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
+use Time2Split\Config\Configurations;
 use Time2Split\Help\Iterables;
 use Time2Split\Help\Optional;
-use Time2Split\Help\Traversables;
 
 /**
  * A sequence of TreeConfig instances where the the last one is the only mutable instance.
  *
+ * @template K
+ * @template V
+ * @extends Configuration<K,V>
+ * @implements \IteratorAggregate<K,V>
+ *  
  * @author Olivier Rodriguez (zuri)
- *
  */
 final class TreeConfigHierarchy extends Configuration implements \IteratorAggregate, DelimitedKeys
 {
@@ -22,21 +28,32 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     /**
      * The first element is the last TreeConfig added.
      *
-     * @var array[Configuration]
+     * @var (Configuration<mixed,mixed>&DelimitedKeys)[]
      */
     private array $rlist;
 
     // ========================================================================
-    public function __construct(Configuration&DelimitedKeys ...$list)
+    public function __construct(Configuration ...$list)
     {
         $delims = [];
 
-        $udelims = \Time2Split\Help\Arrays::map_unique(fn ($i) => $i->getKeyDelimiter(), $list);
+        $list = \array_map(Configurations::ensureDelimitedKeys(...), $list);
+        $udelims = \Time2Split\Help\Arrays::mapUnique(fn ($i) => $i->getKeyDelimiter(), $list);
 
         if (\count($udelims) > 1)
             throw new \Error("Has multiple delimiters: " . print_r($delims, true));
 
         $this->rlist = \array_reverse($list);
+    }
+
+    /**
+     * @param array<Configuration<mixed,mixed>&DelimitedKeys> $list
+     */
+    private function resetRList(array $list): static
+    {
+        $ret = new self();
+        $ret->rlist = $list;
+        return $ret;
     }
 
     public function append(Configuration ...$childs): static
@@ -58,7 +75,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
         $ref = &$ret->rlist[0];
         $ref = $ref->copy($interpolator);
 
-        for ($i = 1, $c = \count($this->rlist); $i < $c; $i ++) {
+        for ($i = 1, $c = \count($this->rlist); $i < $c; $i++) {
             $ref = &$ret->rlist[$i];
             $ref = $ref->copy($interpolator);
         }
@@ -66,7 +83,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     }
 
     // ========================================================================
-    private function last(): Configuration
+    private function last(): Configuration&DelimitedKeys
     {
         return \Time2Split\Help\Arrays::firstValue($this->rlist);
     }
@@ -94,7 +111,11 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     // ========================================================================
     public function subTreeView($offset): static
     {
-        return $this->last()->subTreeView($offset);
+        $sub = [];
+        foreach ($this->rlist as $c)
+            $sub[] = $c->subTreeView($offset);
+
+        return $this->resetRList($sub);
     }
 
     public function subTreeCopy($offset): static
@@ -103,18 +124,23 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
         foreach ($this->rlist as $c)
             $sub[] = $c->subTreeCopy($offset);
 
-        return new self(...$sub);
+        return $this->resetRList($sub);
     }
 
-    public function copyBranches(...$offset): static
+    public function copyBranches($offset, ...$offsets): static
     {
+        $offsets = [$offset, ...$offsets];
+
         $sub = [];
         foreach ($this->rlist as $c)
-            $sub[] = $c->copyBranches(...$offset);
+            $sub[] = $c->copyBranches(...$offsets);
 
-        return new self(...$sub);
+        return $this->resetRList($sub);
     }
 
+    /**
+     * @param K $offset
+     */
     private function get($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
         foreach ($this->rlist as $c) {
@@ -134,6 +160,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
             if ($opt->isPresent())
                 return $opt;
         }
+        /** @var Optional<V> */
         return Optional::empty();
     }
 
@@ -198,10 +225,10 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     {
         $cache = [];
 
-        foreach ($this->rlist as $config) {
+        foreach (Iterables::reverse($this->rlist) as $config) {
             foreach ($config->getIterator($mode) as $k => $v) {
 
-                if (! isset($cache[$k])) {
+                if (!isset($cache[$k])) {
                     $cache[$k] = true;
                     yield $k => $v;
                 }

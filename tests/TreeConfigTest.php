@@ -1,5 +1,7 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\Tests;
 
 use PHPUnit\Framework\TestCase;
@@ -49,17 +51,17 @@ final class TreeConfigTest extends TestCase
         // mergeTree
         $tree = $builder->mergeTree($content);
         $this->assertSame($tree, $builder);
-        $this->assertTrue(Arrays::contentEquals($flat, $tree->toArray()), "flat equals tree");
+        $this->assertTrue(Arrays::sameEntries($flat, $tree->toArray()), "flat equals tree");
 
         // build
         $copy = $builder->build();
         $this->assertTrue($copy !== $builder, '$copy !== $builder');
-        $this->assertTrue(Arrays::contentEquals($flat, $copy->toArray()), "flat equals copy");
+        $this->assertTrue(Arrays::sameEntries($flat, $copy->toArray()), "flat equals copy");
 
         // from
         $builder->setKeyDelimiter('/');
         $builder->copyOf($copy);
-        $this->assertTrue(Arrays::contentEquals($flat, $copy->toArray()), "flat equals copy 2");
+        $this->assertTrue(Arrays::sameEntries($flat, $copy->toArray()), "flat equals copy 2");
     }
 
     public static function treeProvider(): array
@@ -110,8 +112,7 @@ final class TreeConfigTest extends TestCase
 
         $this->assertTrue(isset($tree['a']), 'isset a');
         $this->assertTrue(isset($tree['a.a']), 'isset a.a');
-        $this->assertSame(2, \count($tree));
-        {
+        $this->assertSame(2, \count($tree)); {
             unset($tree['a']);
             $this->assertSame(1, \count($tree));
 
@@ -120,8 +121,7 @@ final class TreeConfigTest extends TestCase
             $this->assertSame(null, $tree['a'], 'unset: null === a');
 
             $this->assertTrue(isset($tree['a.a']), 'unset: isset a.a 2');
-        }
-        {
+        } {
             $tree->removeNode('a');
             $this->assertSame(0, \count($tree));
 

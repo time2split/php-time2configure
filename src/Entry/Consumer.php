@@ -1,12 +1,14 @@
 <?php
+
 namespace Time2Split\Config\Entry;
 
 use Time2Split\Config\Configuration;
 
 /**
- *
+ * @template K
+ * @template V
+ * 
  * @author Olivier Rodriguez (zuri)
- *
  */
 interface Consumer
 {
@@ -14,11 +16,11 @@ interface Consumer
     /**
      * Consume a key and/or a value to do an action.
      *
-     * @param Configuration $config
+     * @param Configuration<K,V> $config
      *            The configuration from/to map the key => value Entry.
-     * @param mixed $key
+     * @param K $key
      *            The key to map.
-     * @param mixed $value
+     * @param V $value
      *            The value to map.
      */
     public function consume(Configuration $config, $key, $value): void;

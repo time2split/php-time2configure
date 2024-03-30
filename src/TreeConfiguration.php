@@ -1,4 +1,5 @@
 <?php
+
 namespace Time2Split\Config;
 
 /**
@@ -10,8 +11,11 @@ namespace Time2Split\Config;
  * Each part of the path is delimited by an internal delimiter character.
  * Each node of the tree can be associated with a value.
  *
+ * @template K
+ * @template V
+ * @extends BaseConfiguration<K,V>
+ * 
  * @author Olivier Rodriguez (zuri)
- *
  */
 interface TreeConfiguration extends BaseConfiguration
 {
@@ -19,7 +23,7 @@ interface TreeConfiguration extends BaseConfiguration
     /**
      * Whether a node is present in the tree.
      *
-     * @param mixed $path
+     * @param K $path
      *            A path to check for.
      * @return bool Returns true on success or false on failure.
      */
@@ -28,7 +32,7 @@ interface TreeConfiguration extends BaseConfiguration
     /**
      * Get a sub-tree copy.
      *
-     * @param mixed $path
+     * @param K $path
      *            A path to the sub-tree.
      * @return static A new instance of the configuration containing the sub-tree.
      */
@@ -37,7 +41,7 @@ interface TreeConfiguration extends BaseConfiguration
     /**
      * Return a view on a sub-tree.
      *
-     * @param mixed $path
+     * @param K $path
      *            A path to the sub-tree.
      * @return static A configuration that reference the content of the sub-tree of the initial configuration.
      */
@@ -46,9 +50,9 @@ interface TreeConfiguration extends BaseConfiguration
     /**
      * Get some branches of the configuration.
      *
-     * @param mixed $path
+     * @param K $path
      *            A first path to a sub-tree.
-     * @param mixed ...$paths
+     * @param K ...$paths
      *            More paths to more sub-trees.
      * @return static A new instance of the configuration containing the selected nodes branches and their sub-tree.
      */
@@ -57,7 +61,7 @@ interface TreeConfiguration extends BaseConfiguration
     /**
      * Remove a node from the configuration.
      *
-     * @param mixed $path
+     * @param K $path
      *            A path to a node.
      */
     public function removeNode($path): void;

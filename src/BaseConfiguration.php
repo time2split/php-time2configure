@@ -1,4 +1,5 @@
 <?php
+
 namespace Time2Split\Config;
 
 use Time2Split\Help\Optional;
@@ -9,8 +10,12 @@ use Time2Split\Config\Entry\ReadingMode;
  * This interface does not describe the format and the semantic of the key part,
  * it may be as simple of php array keys, or be more complex like a hierarchical structure "a.b.c".
  *
+ * @template K
+ * @template V
+ * @extends \ArrayAccess<K,V>
+ * @extends \IteratorAggregate<K,V>
+ * 
  * @author Olivier Rodriguez (zuri)
- *
  */
 interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
 {
@@ -25,32 +30,37 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     // ========================================================================
 
     /**
-     *
-     * {@inheritdoc}
+     * Get an iterator of the entries in the selected reading mode.
+     * 
      * @param ReadingMode $mode
      *            The mode with which to retrieves the entry value.
+     * @return \Iterator<K,V>
+     * 
      * @see ReadingMode
-     * @see \IteratorAggregate::getIterator()
      */
     public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator;
 
     /**
-     *
-     * {@inheritdoc}
+     * Retrieves the value of an entry.
+     * 
+     * @param mixed $offset The key of the entry to retrieves.
      * @param ReadingMode $mode
      *            The mode with which to retrieves the entry value.
+     * @return V The value of the offset, or null if absent.
      * @see \ArrayAccess::offsetGet()
      */
     public function offsetGet($offset, ReadingMode $mode = ReadingMode::Normal): mixed;
 
     /**
-     * Get the value if set.
+     * Retrieves optionally the value of an entry.
      *
      * @param mixed $offset
      *            The offset to retrieve.
      * @param ReadingMode $mode
      *            The mode with which to retrieves the entry value.
-     * @return Optional The value to retrieve.
+     * @return Optional<V> An optional of the value to retrieve.
+     * 
+     * @see https://time2split.github.io/php-time2help/classes/Time2Split-Help-Optional.html Optional
      */
     public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional;
 
@@ -71,11 +81,11 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     /**
      * Make a copy of the configuration.
      *
-     * @param Interpolator $resetInterpolator
+     * @param Interpolator $interpolator
      *            If not set (ie. null) the copy will contains the interpolated value of the configuration tree.
      *            If set the copy will use this interpolator on the raw base value to create a new interpolated configuration.
      *            Note that the interpolator may be the same as $config, in that case it means that the base interpolation is conserved.
-     * @return self A new Configuration instance.
+     * @return static A new Configuration instance.
      */
     public function copy(?Interpolator $interpolator = null): static;
 }

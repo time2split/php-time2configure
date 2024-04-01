@@ -169,7 +169,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
      */
     private function &followPath(array $path): mixed
     {
-        return \Time2Split\Help\TreeArrays::follow($this->storage, $path, TreeConfigSpecial::absent);
+        return TreeArrays::follow($this->storage, $path, TreeConfigSpecial::absent);
     }
 
     private function &followOffset(mixed $offset): mixed
@@ -183,30 +183,18 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
      */
     private function getUpdateList(mixed $offset, $value): array
     {
-        $path = $this->explodePath($offset);
-        return \Time2Split\Help\TreeArrays::pathToRecursiveList($path, $value);
+        return $this->explodePath($offset);
     }
 
     // ========================================================================
-
-    /**
-     * @param array<K,V> &$data
-     * @param K $k
-     * @param V $v
-     */
-    private function updateOnUnexists(array &$data, $k, $v): void
-    {
-        $this->count++;
-        $data[$k] = $v;
-    }
 
     /**
      * @param V|Interpolation<V> $value
      */
     private function setStoredValue(mixed $offset, $value): void
     {
-        $update = $this->getUpdateList($offset, $value);
-        \Time2Split\Help\TreeArrays::updateRecursive($update, $this->storage, $this->updateOnUnexists(...));
+        $leaf = &$this->createIfNotPresent($offset);
+        $leaf = $value;
     }
 
     /**
@@ -296,28 +284,36 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         $val = &$this->followPath($path);
 
         if (\is_array($val) && \array_key_exists($last, $val)) {
-            $this->count -= TreeArrays::nb_branches($val[$last]);
+            $this->count -= TreeArrays::countBranches($val[$last]);
             unset($val[$last]);
         }
     }
 
     // ========================================================================
+
+
     /**
      * @param K $offset
      */
     private function &createIfNotPresent($offset): mixed
     {
-        $ref = [];
+        $def = (object)[];
         $update = $this->getUpdateList($offset, null);
+        $ref = &TreeArrays::follow($this->storage, $update, $def);
 
-        \Time2Split\Help\TreeArrays::updateRecursive(
+        if ($ref !== $def)
+            return $ref;
+
+        unset($ref);
+        $ref = [null];
+        $this->count++;
+
+        TreeArrays::setBranch(
+            $this->storage,
             $update,
-            $this->storage, //
-            self::updateOnUnexists(...), //
-            null, //
-            function (&$aref) use (&$ref) {
-                $ref[] = &$aref;
-            }
+            setLeaf: function ($value, &$leaf) use (&$ref) {
+                $ref = [&$leaf];
+            },
         );
         return $ref[0];
     }

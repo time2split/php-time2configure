@@ -203,6 +203,28 @@ final class Configurations
     // MERGING
     // ========================================================================
 
+
+    /**
+     * @param mixed[] $merge
+     */
+    private static function doMergeTree(Configuration $subject, array $merge, \Closure $linearizePath): void
+    {
+        TreeArrays::walkBranches(
+            $merge,
+            walk: function ($path, $val) use ($subject, $linearizePath) {
+                $subject[$linearizePath($path)] = $val;
+            },
+            fdown: function ($path, $val) use ($subject, $linearizePath) {
+                if (!\is_iterable($val))
+                    return false;
+                if (\is_array_list($val)) {
+                    $subject[$linearizePath($path)] = $val;
+                    return false;
+                }
+                return true;
+            }
+        );
+    }
     /**
      * Merge all levels of tree-shaped data source within a Configuration instance destination.
      * The merge occurs recursively with the sub-data of the source.
@@ -219,7 +241,7 @@ final class Configurations
         $dest = self::ensureDelimitedKeys($dest);
 
         foreach ($trees as $tree)
-            TreeArrays::linearArrayRecursive($dest, $tree, $dest->pathToOffset(...));
+            self::doMergeTree($dest, $tree, $dest->pathToOffset(...));
     }
 
     /**

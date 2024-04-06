@@ -7,7 +7,7 @@ namespace Time2Split\Config\Tests;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Time2Split\Config\Configurations;
-use Time2Split\Help\Arrays;
+use Time2Split\Help\Iterables;
 
 /**
  *
@@ -51,17 +51,17 @@ final class TreeConfigTest extends TestCase
         // mergeTree
         $tree = $builder->mergeTree($content);
         $this->assertSame($tree, $builder);
-        $this->assertTrue(Arrays::sameEntries($flat, $tree->toArray()), "flat equals tree");
+        $this->assertTrue(Iterables::valuesEquals($flat, $tree->toArray()), "flat equals tree");
 
         // build
         $copy = $builder->build();
         $this->assertTrue($copy !== $builder, '$copy !== $builder');
-        $this->assertTrue(Arrays::sameEntries($flat, $copy->toArray()), "flat equals copy");
+        $this->assertTrue(Iterables::valuesEquals($flat, $copy->toArray()), "flat equals copy");
 
         // from
         $builder->setKeyDelimiter('/');
         $builder->copyOf($copy);
-        $this->assertTrue(Arrays::sameEntries($flat, $copy->toArray()), "flat equals copy 2");
+        $this->assertTrue(Iterables::valuesEquals($flat, $copy->toArray()), "flat equals copy 2");
     }
 
     public static function treeProvider(): array

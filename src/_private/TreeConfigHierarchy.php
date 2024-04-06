@@ -38,7 +38,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
         $delims = [];
 
         $list = \array_map(Configurations::ensureDelimitedKeys(...), $list);
-        $udelims = \Time2Split\Help\Arrays::mapUnique(fn ($i) => $i->getKeyDelimiter(), $list);
+        $udelims = \Time2Split\Help\Arrays::arrayMapUnique(fn ($i) => $i->getKeyDelimiter(), $list);
 
         if (\count($udelims) > 1)
             throw new \Error("Has multiple delimiters: " . print_r($delims, true));

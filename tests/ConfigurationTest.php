@@ -153,7 +153,7 @@ final class ConfigurationTest extends TestCase
 
     private function assertArrayEquals(array $a, array $b)
     {
-        $this->assertTrue(Arrays::sameEntries($a, $b), sprintf("Expect\n%s but have\n%s", print_r($a, true), print_r($b, true)));
+        $this->assertTrue(Iterables::valuesEquals($a, $b), sprintf("Expect\n%s but have\n%s", print_r($a, true), print_r($b, true)));
     }
 
     #[DataProvider('configProvider')]

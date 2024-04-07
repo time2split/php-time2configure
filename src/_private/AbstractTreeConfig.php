@@ -13,7 +13,7 @@ use Time2Split\Help\Optional;
 use Time2Split\Config\Entries;
 use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Help\Iterables;
-use Time2Split\Help\TreeArrays;
+use Time2Split\Help\IterableTrees;
 
 /**
  *
@@ -169,7 +169,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
      */
     private function &followPath(array $path): mixed
     {
-        return TreeArrays::follow($this->storage, $path, TreeConfigSpecial::absent);
+        return IterableTrees::follow($this->storage, $path, TreeConfigSpecial::absent);
     }
 
     private function &followOffset(mixed $offset): mixed
@@ -284,7 +284,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         $val = &$this->followPath($path);
 
         if (\is_array($val) && \array_key_exists($last, $val)) {
-            $this->count -= TreeArrays::countBranches($val[$last]);
+            $this->count -= IterableTrees::countLeaves($val[$last]);
             unset($val[$last]);
         }
     }
@@ -299,7 +299,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     {
         $def = (object)[];
         $update = $this->getUpdateList($offset, null);
-        $ref = &TreeArrays::follow($this->storage, $update, $def);
+        $ref = &IterableTrees::follow($this->storage, $update, $def);
 
         if ($ref !== $def)
             return $ref;
@@ -308,10 +308,10 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         $ref = [null];
         $this->count++;
 
-        TreeArrays::setBranch(
+        IterableTrees::setBranch(
             $this->storage,
             $update,
-            setLeaf: function ($value, &$leaf) use (&$ref) {
+            setLeaf: function (&$leaf) use (&$ref) {
                 $ref = [&$leaf];
             },
         );

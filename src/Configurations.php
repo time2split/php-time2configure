@@ -18,7 +18,7 @@ use Time2Split\Help\Optional;
 use Time2Split\Help\Set;
 use Time2Split\Help\Sets;
 use Time2Split\Help\Classes\NotInstanciable;
-use Time2Split\Help\TreeArrays;
+use Time2Split\Help\IterableTrees;
 
 /**
  * Functions on Configuration instances and factories.
@@ -209,16 +209,16 @@ final class Configurations
      */
     private static function doMergeTree(Configuration $subject, array $merge, \Closure $linearizePath): void
     {
-        TreeArrays::walkBranches(
+        IterableTrees::walkBranches(
             $merge,
-            walk: function ($path, $val) use ($subject, $linearizePath) {
-                $subject[$linearizePath($path)] = $val;
+            onLeaf: function ($node, $path) use ($subject, $linearizePath) {
+                $subject[$linearizePath($path)] = $node;
             },
-            fdown: function ($path, $val) use ($subject, $linearizePath) {
-                if (!\is_iterable($val))
+            isNode: function ($node, $path) use ($subject, $linearizePath) {
+                if (!\is_iterable($node))
                     return false;
-                if (\is_array_list($val)) {
-                    $subject[$linearizePath($path)] = $val;
+                if (\is_array_list($node)) {
+                    $subject[$linearizePath($path)] = $node;
                     return false;
                 }
                 return true;

@@ -12,12 +12,12 @@ use Time2Split\Config\Entry\ReadingMode;
  * 
  * The interpolation mecanism implies that a stored value in a configuration may be either
  * the base value set by the user, or an interpolation of its base value.
- * An interpolation stores itself the base value and its compilation that, if executed return an interpolated value.
+ * An interpolation stores itself the base value and its compilation that, if executed, return an interpolated value.
  * 
  * By default, the behaviour of accessing an interpolation is to execute the compilation to return the interpolated value.
- * Nevertheless, it can be usefull to be able to access to the base value, or to the Interpolation value itself.
+ * Nevertheless, it can be usefull to be able to access to the base value, or to the interpolation value itself.
  * That is for this purpose that the {@see ReadingMode} enum exists.
- * Every base access methods of {@see BaseConfiguration} takes the reading mode as a parameter to choose what is the value to return.
+ * Every base access method of {@see BaseConfiguration} takes the reading mode as a parameter to choose which value to return.
  *
  * @author Olivier Rodriguez (zuri)
  * 

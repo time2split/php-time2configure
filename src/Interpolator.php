@@ -7,13 +7,14 @@ use Time2Split\Help\Optional;
 /**
  * Allows to transform a simple value to a more complex operation.
  *
- * An interpolator is associated to a configuration instance, and transforms automatically every value he can recognize
- * to a compiled process wrapped in a {@see Interpolation}.
- * This compilation is executed each time an interpolated value is accessed.
+ * An interpolator is associated to a configuration instance.
+ * It transforms automatically every entry value he can recognize
+ * to a compiled process wrapped in an {@see Interpolation} instance.
+ * This compilation is executed each time an interpolated value is accessed
+ * in a configuration.
  * 
- * For instance, there is a text interpolator implementation ({@see Interpolators::recursive()}) that can detect '${key}' token element
- * in a text string and make a compilation that substitute such a token by the $config[$key] value of the configuration instance when
- * the string is accessed.
+ * For instance, there is a text interpolator implementation ({@see Interpolators::recursive()}) that can detect all '${key}' token element
+ * in a string value and makes a compilation that will substitutes each token by the $config['key'] value when the string is accessed.
  *
  * @template V
  * @template I
@@ -34,12 +35,12 @@ interface Interpolator
     public function compile($value): Optional;
 
     /**
-     * Executes the compilation (if set) and return the result
+     * Executes the compilation and return the result
      *
      * @param mixed $compilation
      *            The compilation to execute
      * @param Configuration<mixed,V> $config
-     *            The Configuration instance to consider
+     *            The configuration to consider
      * @return I The result of the execution of the compilation
      */
     public function execute($compilation, Configuration $config): mixed;

@@ -2,8 +2,6 @@
 
 namespace Time2Split\Config\Entry;
 
-use Time2Split\Config\Interpolation;
-
 /**
  *
  * Possible modes when accessing an entry value of a configuration.
@@ -14,7 +12,6 @@ use Time2Split\Config\Interpolation;
  */
 enum ReadingMode: int
 {
-
     /**
      * Retrieves the interpolated value of an entry, or the raw value itself if not an Interpolation.
      * 

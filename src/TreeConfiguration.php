@@ -4,7 +4,7 @@ namespace Time2Split\Config;
 
 /**
  * A configuration with a tree-shaped structure, that is a sequence of (K => V)
- * where V can be a sub-configuration.
+ * where V can recursively contains entries.
  *
  * An entry access is done using a single string key (eg.
  * $config[$key]) representing a path (ie. a branch) in the tree.
@@ -33,7 +33,7 @@ interface TreeConfiguration extends BaseConfiguration
     public function nodeIsPresent($path): bool;
 
     /**
-     * Get a sub-tree copy.
+     * Gets a sub-tree copy.
      *
      * @param K $path
      *            A path to the sub-tree.
@@ -42,7 +42,7 @@ interface TreeConfiguration extends BaseConfiguration
     public function subTreeCopy($path): static;
 
     /**
-     * Return a view on a sub-tree.
+     * Returns a view on a sub-tree.
      * 
      * Because of the referencing of a sub-tree, updating one configuration's sub-tree will updates the other.
      *  
@@ -53,7 +53,7 @@ interface TreeConfiguration extends BaseConfiguration
     public function subTreeView($path): static;
 
     /**
-     * Get some branches of the configuration.
+     * Gets some branches of the configuration.
      *
      * @param K $path
      *            A first path to a sub-tree.
@@ -64,7 +64,7 @@ interface TreeConfiguration extends BaseConfiguration
     public function copyBranches($path, ...$paths): static;
 
     /**
-     * Remove a node from the configuration.
+     * Removes a node from the configuration.
      *
      * @param K $path
      *            A path to a node.

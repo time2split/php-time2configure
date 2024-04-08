@@ -31,7 +31,7 @@ final class Configurations
     use NotInstanciable;
 
     /**
-     * Get a new TreeConfigBuilder instance.
+     * Gets a new TreeConfigBuilder instance.
      *
      * @return TreeConfigurationBuilder A new instance.
      */
@@ -124,7 +124,7 @@ final class Configurations
     }
 
     /**
-     * Makes a copy instance conserving the interpolator but not the values.
+     * Makes a copy instance conserving the interpolator but not the entries.
      *
      * @param Configuration $config
      *            The configuration to copy from.
@@ -156,7 +156,7 @@ final class Configurations
     // ========================================================================
 
     /**
-     * Create a new Configuration instance that inherit all data from $parent.
+     * Creates a new Configuration instance that inherit all data from $parent.
      * The $parent instance defines default values for the new Configuration instance that always exist.
      * The default values can be shadowed by that in the new instance.
      *
@@ -175,7 +175,7 @@ final class Configurations
     }
 
     /**
-     * Create a new Configuration instance that inherit all data from a sequence of parents.
+     * Creates a new Configuration instance that inherit all data from a sequence of parents.
      * The [$parent,...$childs] instances defines default values for the new Configuration instance that always exist.
      * The default values can be shadowed by that in the new instance.
      *
@@ -226,7 +226,7 @@ final class Configurations
         );
     }
     /**
-     * Merge all levels of tree-shaped data source within a Configuration instance destination.
+     * Merges all levels of tree-shaped data source within a Configuration instance destination.
      * The merge occurs recursively with the sub-data of the source.
      * If an array sub-data is a list, then the list is considered as a simple value and the recursion stop.
      * 
@@ -245,8 +245,8 @@ final class Configurations
     }
 
     /**
-     * Copy the entries of a sequence data source into a Configuration instance destination,
-     * that is copy all the key => value pairs from $src into $dest.
+     * Copies an iterable's entries into a configuration destination,
+     * that is copy all the (key => value) pairs from $src into $dest.
      * If an entry to copy is already present in the configuration then the entry is copied and override the previous entry.
      * 
      * @template K
@@ -263,8 +263,8 @@ final class Configurations
     }
 
     /**
-     * Copy the entries of a sequence data source into a Configuration instance destination,
-     * that is copy all the key => value pairs from $src into $dest.
+     * Copies the entries of a sequence data source into a Configuration instance destination,
+     * that is copy all the (key => value) pairs from $src into $dest.
      * If an entry to copy is already present in the configuration then the entry is not copied, the first entry stay in place.
      * 
      * @template K
@@ -287,7 +287,7 @@ final class Configurations
     // ========================================================================
 
     /**
-     * Decorate a configuration to do an action when a value is read (only with interpolation).
+     * Decorates a configuration to do an action when a value is read (only with interpolation).
      * 
      * @template K
      * @template V
@@ -363,7 +363,7 @@ final class Configurations
     }
 
     /**
-     * Decorate a configuration to do an mapping when a value is read.
+     * Decorates a configuration to do an mapping when a value is read.
      *
      * @template K
      * @template V
@@ -432,7 +432,7 @@ final class Configurations
     }
 
     /**
-     * Decorate a configuration to do a mapping on key => value entry before their assignment.
+     * Decorates a configuration to do a mapping on (key => value) entry before their assignment.
      *
      * @template K
      * @template V
@@ -459,7 +459,7 @@ final class Configurations
     }
 
     /**
-     * Decorate a configuration to do an action when an entry is unset (the entry may be absent).
+     * Decorates a configuration to do an action when an entry is unset (the entry may be absent).
      *
      * @template K
      * @template V

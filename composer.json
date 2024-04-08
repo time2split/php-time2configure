@@ -24,17 +24,12 @@
 			"Time2Split\\Config\\Tests\\": "tests"
 		}
 	},
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "git@github.com:time2split/php-time2help.git"
-		}
-	],
 	"require": {
 		"php": ">=8.2",
-		"time2split/time2help": "dev-develop"
+		"time2split/time2help": "~0.1"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "^11"
+		"phpunit/phpunit": "^11",
+		"phpstan/phpstan": "^1.10"
 	}
 }

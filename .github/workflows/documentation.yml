@@ -1,0 +1,33 @@
+name: Documentation
+on:
+    push:
+        branches:
+            - main
+            - release/**
+        paths:
+            - '**.php'
+jobs:
+    phpdoc:
+        name: PHPDoc
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - run: curl -L https://phpdoc.org/phpDocumentor.phar -o phpdoc
+            - run: chmod a+x phpdoc
+            - run: ./phpdoc
+            - uses: actions/upload-pages-artifact@v3
+              with:
+                name: github-pages
+                path: build/docs/
+                retention-days: 1
+    deploy:
+        name: Deploy
+        needs: phpdoc
+        runs-on: ubuntu-latest
+        permissions:
+            pages: write
+            id-token: write
+        environment:
+            name: github-pages
+        steps:
+            - uses: actions/deploy-pages@v4

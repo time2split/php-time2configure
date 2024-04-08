@@ -140,7 +140,7 @@ final class Entries
      * @template V
      * 
      * @param \Iterator<K,V|Interpolation<V>> $rawEntries
-     *            A sequence of raw .
+     *            A sequence of raw entries.
      * @param Configuration<K,V> $config
      *            The configuration where the values belongs to.
      * @param ReadingMode $mode

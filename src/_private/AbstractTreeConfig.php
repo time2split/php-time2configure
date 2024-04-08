@@ -329,10 +329,8 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     // ========================================================================
     public function subTreeView($offset): static
     {
-        $ref = &$this->getReference($offset);
-        $ref = [];
         $ret = clone $this;
-        $ret->storage = &$ref;
+        $ret->storage = &$this->getReference($offset);
         return $ret;
     }
 

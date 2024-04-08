@@ -23,7 +23,7 @@ abstract class Configuration implements TreeConfiguration
 {
 
     /**
-     * Get an array representation of the entries.
+     * Gets an array representation of the entries.
      * 
      * @return array<V>
      */
@@ -33,7 +33,7 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * Get a raw value iterator.
+     * Gets a raw value iterator.
      * 
      * @return \Iterator<K,V|Interpolation<V>>
      */
@@ -43,10 +43,8 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * Get a base value iterator.
+     * Gets a base value iterator.
      * @return \Iterator<K,V>
-     * 
-     * @source
      */
     public final function getBaseValueIterator(): \Iterator
     {
@@ -54,9 +52,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * Add iterable entries to the configuration.
+     * Adds iterables entries to the configuration.
      * 
      * @param iterable<K,V>  ...$configs Iterables of (K => V) entries.
+     * @return static This configuration.
      * @see Configurations::merge()
      */
     public final function merge(iterable ...$configs): static
@@ -66,9 +65,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * Merge some trees to the configuration.
+     * Merges some trees to the configuration.
      * 
      * @param array<V>  ...$trees Some trees.
+     * @return static This configuration.
      * @see Configurations::mergeTree()
      */
     public final function mergeTree(array ...$trees): static
@@ -81,6 +81,7 @@ abstract class Configuration implements TreeConfiguration
      * Does the unions with iterables.
      * 
      * @param iterable<K,V>  ...$configs Iterables of (K => V) entries
+     * @return static This configuration.
      * @see Configurations::union()
      */
     public final function union(iterable ...$configs): static
@@ -90,9 +91,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * Unset some entries.
+     * Unsets some entries.
      * 
      * @param K $offsets Keys to drop.
+     * @return static This configuration.
      * @see BaseConfiguration::offsetUnset()
      */
     public final function unsetFluent(...$offsets): static
@@ -106,10 +108,10 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * Remove some nodes (fluent api).
+     * Removes some nodes (fluent api).
      * @param K $offsets
      * @return static This configuration.
-     * @see BaseConfiguration::removeNode()
+     * @see TreeConfiguration::removeNode()
      */
     public final function removeNodeFluent(...$offsets): static
     {

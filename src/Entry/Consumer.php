@@ -24,11 +24,11 @@ interface Consumer
      * Consumes an entry to do an action.
      *
      * @param Configuration<K,V> $config
-     *            The configuration from/to map the key => value Entry.
+     *            The configuration of the (key => value) entry.
      * @param K $key
-     *            The key to map.
+     *            The key of the entry.
      * @param V $value
-     *            The value to map.
+     *            The value of the entry.
      */
     public function consume(Configuration $config, $key, $value): void;
 }

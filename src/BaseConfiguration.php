@@ -9,7 +9,7 @@ use Time2Split\Config\Entry\ReadingMode;
  * A sequence of (K => V) entries with automatic interpolation features.
  * 
  * This is the base interface that must implement all configuration instances.
- * The library provide (for now) only {@see Configuration} implementations that may be
+ * The library provides (for now) only {@see Configuration} implementations that may be
  * instanciated with the {@see Configurations} factory methods.
  * 
  * Note that this interface does not describe the format and the semantic of the key part,
@@ -30,7 +30,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
 {
 
     /**
-     * Get the interpolator used.
+     * Gets the interpolator used.
      *
      * @return Interpolator<V,I> The configuration interpolator.
      */
@@ -39,7 +39,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     // ========================================================================
 
     /**
-     * Get an iterator of the entries in the selected reading mode.
+     * Gets an iterator over the entries in the selected reading mode.
      * 
      * @param ReadingMode $mode
      *            The mode with which to retrieves the entry value.
@@ -62,16 +62,16 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     /**
      * Retrieves the value of an entry.
      * 
-     * @param ?K $offset The key of the entry to retrieves.
+     * @param ?K $offset The key of the entry to retrieve.
      * @param ReadingMode $mode
-     *            The mode with which to retrieves the entry value.
+     *            The mode with which to retrieve the entry value.
      * @return V The value of the offset, or null if absent.
      * @see \ArrayAccess::offsetGet()
      */
     public function offsetGet($offset, ReadingMode $mode = ReadingMode::Normal): mixed;
 
     /**
-     * Assign a value to the specified offset.
+     * Assigns a value to the specified offset.
      * 
      * @param ?K $offset The offset to assign the value to.
      * @param V $value The value to set.
@@ -79,7 +79,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     public function offsetSet($offset, $value): void;
 
     /**
-     * Unset an offset
+     * Unsets an offset
      *
      * @param ?K $offset The offset to unset.
      */
@@ -94,7 +94,8 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
      *            The offset to retrieve.
      * @param ReadingMode $mode
      *            The mode with which to retrieves the entry value.
-     * @return Optional<V> An optional of the value to retrieve.
+     * @return Optional<V> An optional of the value to retrieve, or an
+     * empty optional if the offset is absent.
      * 
      * @link https://time2split.github.io/php-time2help/classes/Time2Split-Help-Optional.html Optional
      */
@@ -110,7 +111,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     public function isPresent($offset): bool;
 
     /**
-     * Drop all items from the configuration.
+     * Drops all items from the configuration.
      */
     public function clear(): void;
 
@@ -119,7 +120,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
      *
      * @param Interpolator $interpolator The interpolator to use for the copy.
      *  - (null)
-     *  If not set then the copy contains the interpolated value of the configuration tree and has'nt an interpolator.
+     *  If not set then the copy contains the interpolated value of the configuration tree and will never do interpolation.
      *  - (isset)           
      *  If set then the copy uses this interpolator on the raw base value to create a new interpolated configuration.
      *  Note that the interpolator may be the same as $config, in that case it means that the same interpolation is conserved.

@@ -8,7 +8,7 @@ use Time2Split\Help\Optional;
 use Time2Split\Help\Classes\NotInstanciable;
 
 /**
- * Method Factories that expose some Interpolator implementations.
+ * Method Factories that provide some interpolator implementations.
  *
  * @author Olivier Rodriguez (zuri)
  *

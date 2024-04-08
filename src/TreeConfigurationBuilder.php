@@ -18,9 +18,9 @@ use Time2Split\Help\Iterables;
  * A builder is itself a configuration instance.
  * It's the only one that can modify its internal state (interpolator, key delimiter).
  * The {@see TreeConfigurationBuilder::build()} method can provides a more efficient configuration instances than the builder,
- * due to the immutability of its internal states.
+ * due to the immutability of the internal state of the created instance.
  *
- * A builder can only be create with the {@see Configurations::builder()} method factory.
+ * A builder can only be created with the {@see Configurations::builder()} method factory.
  * 
  * @template K
  * @template V
@@ -45,7 +45,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
     }
 
     /**
-     * Get a new builder instance using another interpolator.
+     * Gets a new builder instance using another interpolator.
      * 
      * @return static A new builder instance.
      * @see BaseConfiguration::copy()
@@ -98,7 +98,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
     }
 
     /**
-     * Makes a copy of a configuration conserving its interpolator but not the values.
+     * Makes a copy of a configuration conserving its interpolator but not the entries.
      *
      * @param Configuration $config
      *            The configuration to copy from.
@@ -165,7 +165,7 @@ final class TreeConfigurationBuilder extends AbstractTreeConfig
     }
 
     /**
-     * Set the key delimiter of the Configuration instance to build.
+     * Sets the key delimiter of the Configuration instance to build.
      *
      * An access key is composed of multiple parts defining a path in the Configuration instance tree.
      * The delimiter is a character that permits to split a key in parts defining the access path.

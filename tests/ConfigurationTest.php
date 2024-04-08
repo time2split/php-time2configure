@@ -350,4 +350,20 @@ final class ConfigurationTest extends TestCase
 
         $this->assertSame(0, $config['a.b']);
     }
+
+    public function testSubTreeViewFix1(): void
+    {
+        $tree = [
+            'a' => [
+                'aa' => 1,
+                'ab' => 2,
+            ]
+        ];
+        $config = Configurations::ofTree($tree);
+        $view = $config->subTreeView('a');
+        $this->assertSame($tree['a'], $view->toArray());
+
+        $config['a.aa'] = 5;
+        $this->assertSame(5, $view['aa']);
+    }
 }

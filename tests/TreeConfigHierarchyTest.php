@@ -8,6 +8,7 @@ use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use Time2Split\Config\_private\TreeConfigHierarchy;
 use Time2Split\Config\Configurations;
+use Time2Split\Config\Interpolators;
 
 /**
  *
@@ -36,5 +37,26 @@ final class TreeConfigHierarchyTest extends TestCase
 
         unset($c['name']);
         $fcheck();
+    }
+
+    public function testInterpolationFix2(): void
+    {
+        $a = ['text' => '${name}', 'name' => 'a'];
+        $b = ['name' => 'b'];
+        $a = Configurations::builder()->setInterpolator(Interpolators::recursive())->mergeTree($a)->build();
+        $b = Configurations::builder()->setInterpolator(Interpolators::recursive())->mergeTree($b)->build();
+        $c = Configurations::hierarchy($a, $b);
+
+        $this->assertEquals('a', $a['text']);
+        $this->assertEquals('b', $c['text']);
+
+        $opt = $c->getOptional('text');
+        $this->assertTrue($opt->isPresent());
+        $this->assertEquals('b', $opt->get());
+
+        $c['name'] = 'over';
+        $this->assertEquals('over', $c['text']);
+        unset($c['name']);
+        $this->assertEquals('a', $c['text'], 'a2');
     }
 }

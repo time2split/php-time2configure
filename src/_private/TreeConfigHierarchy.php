@@ -9,6 +9,7 @@ use Time2Split\Config\Interpolator;
 use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\Configurations;
+use Time2Split\Config\Entries;
 use Time2Split\Help\Iterables;
 use Time2Split\Help\Optional;
 
@@ -144,10 +145,10 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     private function get($offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
         foreach ($this->rlist as $c) {
-            $v = $c->getOptional($offset, $mode);
+            $v = $c->getOptional($offset, ReadingMode::RawValue);
 
             if ($v->isPresent())
-                return $v->get();
+                return Entries::valueOf($v->get(), $this, $mode);
         }
         return null;
     }
@@ -155,10 +156,10 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
     {
         foreach ($this->rlist as $c) {
-            $opt = $c->getOptional($offset, $mode);
+            $opt = $c->getOptional($offset, ReadingMode::RawValue);
 
             if ($opt->isPresent())
-                return $opt;
+                return Optional::of(Entries::valueOf($opt->get(), $this, $mode));
         }
         /** @var Optional<V> */
         return Optional::empty();

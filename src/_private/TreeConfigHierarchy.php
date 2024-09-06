@@ -225,7 +225,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
     {
         $cache = [];
 
-        foreach (Iterables::reverse($this->rlist) as $config) {
+        foreach ($this->rlist as $config) {
             foreach ($config->getIterator($mode) as $k => $v) {
 
                 if (!isset($cache[$k])) {

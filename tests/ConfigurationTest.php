@@ -6,9 +6,9 @@ namespace Time2Split\Config\Tests;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Configurations;
-use Time2Split\Help\Arrays;
 use Time2Split\Help\Iterables;
 use Time2Split\Help\Tests\DataProvider\Producer;
 use Time2Split\Help\Tests\DataProvider\Provided;
@@ -25,8 +25,8 @@ final class ConfigurationTest extends TestCase
     {
         $mconfigs = \array_merge(...$configs);
         return [
-            'simple' => new Provided('simple', [new Producer(fn () => Configurations::ofTree($mconfigs))]),
-            'builder' => new Provided('builder', [new Producer(fn () => Configurations::builder()->mergeTree($mconfigs))]),
+            'simple' => new Provided('simple', [new Producer(fn() => Configurations::ofTree($mconfigs))]),
+            'builder' => new Provided('builder', [new Producer(fn() => Configurations::builder()->mergeTree($mconfigs))]),
             'childs' => new Provided('childs', [
                 new Producer(function () use ($configs) {
                     $configs = \array_reverse($configs);
@@ -39,11 +39,13 @@ final class ConfigurationTest extends TestCase
                     }
                     return $config;
                 })
-            ]), 'hierarchy' => new Provided('hierarchy', [
-                new Producer(fn () => Configurations::hierarchy(...\array_map(Configurations::ofTree(...), $configs)))
+            ]),
+            'hierarchy' => new Provided('hierarchy', [
+                new Producer(fn() => Configurations::hierarchy(...\array_map(Configurations::ofTree(...), $configs)))
             ])
         ];
     }
+
     public static function getConfigProviders(array ...$configs): array
     {
         return \array_values(self::getConfigProvidersLabeled(...$configs));
@@ -208,10 +210,12 @@ final class ConfigurationTest extends TestCase
         $empty = Configurations::emptyTreeCopyOf($config);
         $this->assertSame(0, \count($empty));
 
-        foreach ([
-            $cleared,
-            $empty
-        ] as $empty)
+        foreach (
+            [
+                $cleared,
+                $empty
+            ] as $empty
+        )
             $this->assertSame($interpolator, $empty->getInterpolator());
 
         if ($expectClear = $args['clear'] ?? []) {
@@ -233,23 +237,26 @@ final class ConfigurationTest extends TestCase
             'b.a.b' => 11,
             'b.b' => 20
         ];
-        $sub = fn ($nullResult) => [
+        $sub = fn($nullResult) => [
             [null, $nullResult],
             [
-                'a', [
+                'a',
+                [
                     'a' => 1,
                     'b' => 2
                 ]
             ],
             [
-                'b',  [
+                'b',
+                [
                     'a.a' => 10,
                     'a.b' => 11,
                     'b' => 20
                 ]
             ],
             [
-                'b.a', [
+                'b.a',
+                [
                     'a' => 10,
                     'b' => 11
                 ]
@@ -271,15 +278,14 @@ final class ConfigurationTest extends TestCase
         return $ret;
     }
 
+    #[Test]
     #[DataProvider('subConfigProvider')]
-    public function testSubTreeCopy(Configuration $config, array $sub): void
+    public function subTreeCopy(Configuration $config, array $sub): void
     {
-        foreach ($sub as [
-            $k,
-            $subResult
-        ]) {
+        foreach ($sub as [$k, $subResult]) {
             $subConfig = $config->subTreeCopy($k);
-            $this->assertSame($subResult, $subConfig->toArray());
+            // A Configuration contents is order independant, so 'equals' for comparisons
+            $this->assertEquals($subResult, $subConfig->toArray());
         }
     }
 
@@ -299,7 +305,7 @@ final class ConfigurationTest extends TestCase
             'b.a.a' => 10,
             'b.a.b' => 11
         ];
-        $sub = fn ($nullResult) => [
+        $sub = fn($nullResult) => [
             [null, $nullResult],
             ['a', $aconfig],
             ['b', $bconfig],
@@ -320,15 +326,14 @@ final class ConfigurationTest extends TestCase
         return $ret;
     }
 
+    #[Test]
     #[DataProvider('selectProvider')]
-    public function testSelect(Configuration $config, array $sub): void
+    public function select(Configuration $config, array $sub): void
     {
-        foreach ($sub as [
-            $k,
-            $subResult
-        ]) {
+        foreach ($sub as [$k, $subResult]) {
             $subConfig = $config->copyBranches($k);
-            $this->assertSame($subResult, $subConfig->toArray(), "select $k");
+            // A Configuration contents is order independant, so 'equals' for comparisons
+            $this->assertEquals($subResult, $subConfig->toArray(), "select $k");
         }
     }
 

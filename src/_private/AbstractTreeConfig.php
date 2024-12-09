@@ -9,9 +9,11 @@ use Time2Split\Config\Interpolation;
 use Time2Split\Config\Interpolator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\_private\TreeConfig\TreeStorage;
+use Time2Split\Config\Configurations;
 use Time2Split\Help\Optional;
 use Time2Split\Config\Entries;
 use Time2Split\Config\Entry\ReadingMode;
+use Time2Split\Config\TreeConfiguration;
 use Time2Split\Help\Iterables;
 use Time2Split\Help\IterableTrees;
 
@@ -43,7 +45,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     /**
      * @var array<K,V>
      */
-    protected array $storage;
+    private array $storage;
 
     private int $count;
 
@@ -53,12 +55,39 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
      * @param Interpolator<V,I> $interpolator
      * @param array<K,V> $storage
      */
-    protected function __construct(string $delimiter, Interpolator $interpolator, array $storage = [])
+    protected function __construct(string $delimiter, Interpolator $interpolator, array $storage = [], ?int $count = null)
     {
         $this->resetKeyDelimiter($delimiter);
         $this->interpolator = $interpolator;
+        $this->setStorage($storage, $count);
+    }
+
+    public function copy(?Interpolator $interpolator = null): static
+    {
+        $ret = new static($this->delimiter, $interpolator ?? $this->interpolator);
+        $this->copyToAbstract($ret, $interpolator);
+        return $ret;
+    }
+
+    protected function setStorage(array $storage, ?int $count = null): void
+    {
         $this->storage = $storage;
-        $this->count = 0;
+
+        if ($count === null)
+            $count = IterableTrees::countLeaves($storage);
+
+        $this->count = $count;
+    }
+
+    protected function setStorageRef(array &$storage): void
+    {
+        $this->storage = &$storage;
+        $this->count = -1;
+    }
+
+    protected function getStorage(): array
+    {
+        return $this->storage;
     }
 
     protected function copyToAbstract(AbstractTreeConfig $dest, ?Interpolator $resetInterpolator): void
@@ -71,7 +100,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
             if ($resetInterpolator != $this->interpolator)
                 $dest->merge(Iterables::mapValue($this->getRawValueIterator(), Entries::baseValueOf(...)));
             else
-                $dest->storage = $this->storage;
+                $dest->setStorage($this->storage, $this->count);
         } else {
             assert($this->interpolator === $dest->interpolator);
             $dest->merge($this);
@@ -79,6 +108,42 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     // ========================================================================
+
+    public function toArrayTree(
+        int|string $leafKey = null,
+        ReadingMode $mode = ReadingMode::Normal
+    ): array {
+        $ret = [];
+        $toProcess = [[&$ret, &$this->storage]];
+
+        while (!empty($toProcess)) {
+            $nextToProcess = [];
+
+            foreach ($toProcess as [&$retNode, &$treeNode]) {
+                $hasValue = \array_key_exists('', $treeNode);
+                $isLeaf = $hasValue && \count($treeNode) === 1;
+
+                if ($hasValue && null !== $leafKey) {
+                    $assign = Entries::valueOf($treeNode[''], $this, $mode);
+                    $retNode[$leafKey] = $assign;
+                }
+                if (!$isLeaf) {
+
+                    foreach ($treeNode as $k => &$v) {
+
+                        if (\is_array($v))
+                            $nextToProcess[] = [&$retNode[$k], &$v];
+                    }
+                } elseif (null === $leafKey) {
+                    $assign = Entries::valueOf($treeNode[''], $this, $mode);
+                    $retNode = $assign;
+                }
+            }
+            $toProcess = $nextToProcess;
+        }
+        return $ret;
+    }
+
     public function getInterpolator(): Interpolator
     {
         return $this->interpolator;
@@ -191,10 +256,14 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     /**
      * @param V|Interpolation<V> $value
      */
-    private function setStoredValue(mixed $offset, $value): void
+    private function setStoredValue(mixed $offset, $value, int $count = 1): void
     {
-        $leaf = &$this->createIfNotPresent($offset);
+        $isNew = false;
+        $leaf = &$this->createIfNotPresent($offset, $isNew);
         $leaf = $value;
+
+        if ($isNew)
+            $this->count += $count;
     }
 
     /**
@@ -273,7 +342,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         }
     }
 
-    public function removeNode($offset): void
+    public function offsetUnsetNode($offset): void
     {
         $path = $this->explodePath($offset);
 
@@ -294,19 +363,20 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
 
     /**
      * @param K $offset
+     * @param bool $out_isNew return true if the node has been created, or false if it already exists
      */
-    private function &createIfNotPresent($offset): mixed
+    private function &createIfNotPresent($offset, bool &$out_isNew = false): mixed
     {
-        $def = (object)[];
+        assert($out_isNew === false);
         $update = $this->getUpdateList($offset, null);
-        $ref = &IterableTrees::follow($this->storage, $update, $def);
+        $ref = &IterableTrees::follow($this->storage, $update, TreeConfigSpecial::absent);
 
-        if ($ref !== $def)
+        if ($ref !== TreeConfigSpecial::absent)
             return $ref;
 
         unset($ref);
         $ref = [null];
-        $this->count++;
+        $out_isNew = true;
 
         IterableTrees::setBranch(
             $this->storage,
@@ -318,20 +388,24 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         return $ref[0];
     }
 
-    /**
-     * @param K $offset
-     */
-    private function &getReference($offset): mixed
-    {
-        return $this->createIfNotPresent($offset);
-    }
-
     // ========================================================================
-    public function subTreeView($offset): static
+
+    public function subTreeView($offset): TreeConfiguration
     {
-        $ret = clone $this;
-        $ret->storage = &$this->getReference($offset);
-        return $ret;
+        $view = new class($this->delimiter, $this->interpolator) extends AbstractTreeConfig {
+
+            public function count(): int
+            {
+                return IterableTrees::countLeaves($this->getStorage());
+            }
+        };
+        $ref = &$this->createIfNotPresent($offset);
+
+        if (null === $ref)
+            $ref = [];
+
+        $view->setStorageRef($ref);
+        return Configurations::unmodifiable($view);
     }
 
     public function subTreeCopy($offset): static
@@ -339,11 +413,13 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         $val = $this->followOffset($offset);
 
         $ret = clone $this;
-        $ret->storage = [];
 
         if ($val !== TreeConfigSpecial::absent)
-            $ret->storage = $val;
+            $ret->setStorage($val);
+        else
+            $ret->clear();
 
+        // Todo: test
         return $ret;
     }
 
@@ -353,21 +429,20 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         $offsets = $this->deduplicateOffsets($offsets);
 
         $ret = clone $this;
-        $ret->storage = [];
+        $ret->clear();
 
         foreach ($offsets as $offset) {
             $val = $this->followOffset($offset);
 
             if ($val !== TreeConfigSpecial::absent)
-                $ret->setStoredValue($offset, $val);
+                $ret->setStoredValue($offset, $val, IterableTrees::countLeaves($val));
         }
         return $ret;
     }
 
     public function clear(): void
     {
-        $this->count = 0;
-        $this->storage = [];
+        $this->setStorage([], 0);
     }
 
     // ========================================================================

@@ -50,7 +50,7 @@ interface TreeConfiguration extends BaseConfiguration
      *            A path to the sub-tree.
      * @return static A configuration that reference the content of the sub-tree of the initial configuration.
      */
-    public function subTreeView($path): static;
+    public function subTreeView($path): TreeConfiguration;
 
     /**
      * Gets some branches of the configuration.
@@ -69,5 +69,5 @@ interface TreeConfiguration extends BaseConfiguration
      * @param K $path
      *            A path to a node.
      */
-    public function removeNode($path): void;
+    public function offsetUnsetNode($path): void;
 }

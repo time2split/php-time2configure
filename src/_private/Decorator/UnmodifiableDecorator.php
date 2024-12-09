@@ -1,5 +1,7 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\_private\Decorator;
 
 use Time2Split\Config\Exception\UnmodifiableException;
@@ -23,7 +25,7 @@ final class UnmodifiableDecorator extends Decorator
         throw new UnmodifiableException();
     }
 
-    public function removeNode($offset): void
+    public function offsetUnsetNode($offset): void
     {
         throw new UnmodifiableException();
     }

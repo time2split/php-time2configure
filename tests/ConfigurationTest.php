@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Time2Split\Config\Tests;
 
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Configurations;
-use Time2Split\Help\Arrays;
+use Time2Split\Config\Exception\UnmodifiableException;
 use Time2Split\Help\Iterables;
 use Time2Split\Help\Tests\DataProvider\Producer;
 use Time2Split\Help\Tests\DataProvider\Provided;
@@ -23,10 +25,9 @@ final class ConfigurationTest extends TestCase
 
     public static function getConfigProvidersLabeled(array ...$configs): array
     {
-        $mconfigs = \array_merge(...$configs);
         return [
-            'simple' => new Provided('simple', [new Producer(fn () => Configurations::ofTree($mconfigs))]),
-            'builder' => new Provided('builder', [new Producer(fn () => Configurations::builder()->mergeTree($mconfigs))]),
+            'simple' => new Provided('simple', [new Producer(fn() => Configurations::ofTree(...$configs))]),
+            'builder' => new Provided('builder', [new Producer(fn() => Configurations::builder()->mergeTree(...$configs))]),
             'childs' => new Provided('childs', [
                 new Producer(function () use ($configs) {
                     $configs = \array_reverse($configs);
@@ -39,11 +40,13 @@ final class ConfigurationTest extends TestCase
                     }
                     return $config;
                 })
-            ]), 'hierarchy' => new Provided('hierarchy', [
-                new Producer(fn () => Configurations::hierarchy(...\array_map(Configurations::ofTree(...), $configs)))
+            ]),
+            'hierarchy' => new Provided('hierarchy', [
+                new Producer(fn() => Configurations::hierarchy(...\array_map(Configurations::ofTree(...), $configs)))
             ])
         ];
     }
+
     public static function getConfigProviders(array ...$configs): array
     {
         return \array_values(self::getConfigProvidersLabeled(...$configs));
@@ -151,6 +154,49 @@ final class ConfigurationTest extends TestCase
         return $ret;
     }
 
+    // ========================================================================
+
+    public static function toArrayTreeProvider()
+    {
+        $a = [
+            'a' => 0,
+            'a.a' => 'a',
+            'd' => 1,
+        ];
+        $b = [
+            'a' => [
+                'b' => 10,
+                'c' => 20,
+            ]
+        ];
+        return Provided::merge(self::getConfigProviders($a, $b));
+    }
+    #[Test]
+    #[DataProvider('toArrayTreeProvider')]
+    public function toArrayTree(Configuration $config): void
+    {
+        $nullexpect = [
+            'a' => [
+                'a' => 'a',
+                'b' => 10,
+                'c' => 20,
+            ],
+            'd' => 1,
+        ];
+        $expect = [
+            'a' => [
+                '' => 0,
+                'a' => ['' => 'a'],
+                'b' => ['' => 10],
+                'c' => ['' => 20],
+            ],
+            'd' => ['' => 1],
+        ];
+        $this->assertEquals($nullexpect, $config->toArrayTree());
+        $this->assertEquals($expect, $config->toArrayTree(''));
+    }
+    // ========================================================================
+
     private function assertArrayEquals(array $a, array $b)
     {
         $this->assertTrue(Iterables::valuesEquals($a, $b), sprintf("Expect\n%s but have\n%s", print_r($a, true), print_r($b, true)));
@@ -208,10 +254,12 @@ final class ConfigurationTest extends TestCase
         $empty = Configurations::emptyTreeCopyOf($config);
         $this->assertSame(0, \count($empty));
 
-        foreach ([
-            $cleared,
-            $empty
-        ] as $empty)
+        foreach (
+            [
+                $cleared,
+                $empty
+            ] as $empty
+        )
             $this->assertSame($interpolator, $empty->getInterpolator());
 
         if ($expectClear = $args['clear'] ?? []) {
@@ -233,23 +281,26 @@ final class ConfigurationTest extends TestCase
             'b.a.b' => 11,
             'b.b' => 20
         ];
-        $sub = fn ($nullResult) => [
+        $sub = fn($nullResult) => [
             [null, $nullResult],
             [
-                'a', [
+                'a',
+                [
                     'a' => 1,
                     'b' => 2
                 ]
             ],
             [
-                'b',  [
+                'b',
+                [
                     'a.a' => 10,
                     'a.b' => 11,
                     'b' => 20
                 ]
             ],
             [
-                'b.a', [
+                'b.a',
+                [
                     'a' => 10,
                     'b' => 11
                 ]
@@ -271,16 +322,50 @@ final class ConfigurationTest extends TestCase
         return $ret;
     }
 
+    #[Test]
     #[DataProvider('subConfigProvider')]
-    public function testSubTreeCopy(Configuration $config, array $sub): void
+    public function subTreeCopy(Configuration $config, array $sub): void
     {
-        foreach ($sub as [
-            $k,
-            $subResult
-        ]) {
+        foreach ($sub as [$k, $subResult]) {
             $subConfig = $config->subTreeCopy($k);
-            $this->assertSame($subResult, $subConfig->toArray());
+            // A Configuration contents is order independant, so 'equals' for comparisons
+            $this->assertEquals($subResult, $subConfig->toArray());
         }
+    }
+
+    #[Test]
+    #[DataProvider('configurationsProvider')]
+    public function copyBranches(Configuration $config): void
+    {
+        $treea = [
+            'a' => [
+                'aa' => 'AA',
+                'ab' => 'AB',
+            ]
+        ];
+        $tree = [
+            ...$treea,
+            'b' => 'B',
+        ];
+        $config->mergeTree($tree);
+
+        $cpy = $config->copyBranches('a');
+        $this->assertSame(2, \count($cpy));
+        $this->assertSame('AA', $cpy['a.aa']);
+        $this->assertSame('AB', $cpy['a.ab']);
+        $this->assertNull($cpy['b']);
+
+        $cpy = $config->copyBranches('b');
+        $this->assertSame(1, \count($cpy));
+        $this->assertNull($cpy['a.aa']);
+        $this->assertNull($cpy['a.ab']);
+        $this->assertSame('B', $cpy['b']);
+
+        $cpy = $config->copyBranches('a', 'b');
+        $this->assertSame(3, \count($cpy));
+        $this->assertSame('AA', $cpy['a.aa']);
+        $this->assertSame('AB', $cpy['a.ab']);
+        $this->assertSame('B', $cpy['b']);
     }
 
     // // ========================================================================
@@ -299,7 +384,7 @@ final class ConfigurationTest extends TestCase
             'b.a.a' => 10,
             'b.a.b' => 11
         ];
-        $sub = fn ($nullResult) => [
+        $sub = fn($nullResult) => [
             [null, $nullResult],
             ['a', $aconfig],
             ['b', $bconfig],
@@ -320,24 +405,23 @@ final class ConfigurationTest extends TestCase
         return $ret;
     }
 
+    #[Test]
     #[DataProvider('selectProvider')]
-    public function testSelect(Configuration $config, array $sub): void
+    public function select(Configuration $config, array $sub): void
     {
-        foreach ($sub as [
-            $k,
-            $subResult
-        ]) {
+        foreach ($sub as [$k, $subResult]) {
             $subConfig = $config->copyBranches($k);
-            $this->assertSame($subResult, $subConfig->toArray(), "select $k");
+            // A Configuration contents is order independant, so 'equals' for comparisons
+            $this->assertEquals($subResult, $subConfig->toArray(), "select $k");
         }
     }
 
-    public static function subTreeViewProvider(): \Generator
+    public static function configurationsProvider(): \Generator
     {
         return Provided::merge(self::getConfigProviders([]));
     }
 
-    #[DataProvider('subTreeViewProvider')]
+    #[DataProvider('configurationsProvider')]
     public function testSubTreeView(Configuration $config): void
     {
         $view = $config->subTreeView('a');
@@ -345,10 +429,13 @@ final class ConfigurationTest extends TestCase
         $this->assertFalse($config->isPresent('a'));
         $this->assertTrue($config->nodeIsPresent('a'));
 
-        $view['b'] = 0;
-        unset($view);
+        $config['a.aa'] = 'aa';
+        $this->assertSame('aa', $view['aa']);
 
-        $this->assertSame(0, $config['a.b']);
+        // Remove the root of the view
+        $config->offsetUnsetNode('a');
+        $this->assertSame(0, \count($config));
+        $this->assertSame('aa', $view['aa']);
     }
 
     public function testSubTreeViewFix1(): void
@@ -365,5 +452,107 @@ final class ConfigurationTest extends TestCase
 
         $config['a.aa'] = 5;
         $this->assertSame(5, $view['aa']);
+    }
+
+    #[Test]
+    public function creationCount(): void
+    {
+        $tree = [
+            'a' => [
+                'aa' => 1,
+                'ab' => 2,
+            ],
+            'b' => 1,
+        ];
+        $configs = [];
+        $config = Configurations::ofTree($tree);
+        $unmod = Configurations::unmodifiable($config);
+        $cpy = Configurations::treeCopyOf($config);
+        $configs = [
+            'conf' => &$config,
+            'unmod' => &$unmod,
+            'cpy' => &$cpy
+        ];
+        $check = function (int $cnt, string $testLabel) use ($configs): void {
+
+            foreach ($configs as $label => $c) {
+                Assert::assertSame($cnt, \count($c), "$label ($testLabel)");
+            }
+        };
+        //Init
+        $check(3, 'init');
+        Assert::assertSame(2, \count($config->subTreeCopy('a')));
+        Assert::assertSame(3, \count($config->copyBranches('a', 'b')));
+
+        // Add
+        $config['c'] = 2;
+        $cpy = Configurations::treeCopyOf($config);
+        $check(4, 'add');
+        Assert::assertSame(3, \count($config->copyBranches('a', 'b')));
+        // Update
+        $config['b'] = 3;
+        $cpy = Configurations::treeCopyOf($config);
+        $check(4, 'update');
+        // Unset leaf
+        unset($config['b']);
+        $cpy = Configurations::treeCopyOf($config);
+        $check(3, 'unset leaf');
+        Assert::assertSame(2, \count($config->copyBranches('a', 'b')));
+        // Unset Node
+        $config->offsetUnsetNode('a');
+        $cpy = Configurations::treeCopyOf($config);
+        $check(1, 'unset node');
+        Assert::assertSame(0, \count($config->subTreeCopy('a')));
+    }
+
+    #[Test]
+    public function subTreeViewCount(): void
+    {
+        $tree = [
+            'a' => [
+                'aa' => 1,
+                'ab' => ['aba' => 1],
+            ],
+            'b' => 1,
+        ];
+        $config = Configurations::ofTree($tree);
+        $view = $config->subTreeView('a');
+
+        $this->assertSame(3, \count($config));
+        $this->assertSame(2, \count($view));
+
+        $config['a.ac'] = 3;
+        $this->assertSame(4, \count($config));
+        $this->assertSame(3, \count($view));
+
+        unset($config['a.ac']);
+        $this->assertSame(3, \count($config));
+        $this->assertSame(2, \count($view));
+
+        $config->offsetUnsetNode('a.ab');
+        $this->assertSame(2, \count($config));
+        $this->assertSame(1, \count($view));
+
+        // Remove the view root
+        $config->offsetUnsetNode('a');
+        $this->assertSame(1, \count($config));
+        $this->assertSame(1, \count($view));
+    }
+
+
+    #[Test]
+    public function subTreeViewUnmodifiable(): void
+    {
+        $tree = [
+            'a' => [
+                'aa' => 1,
+                'ab' => 2,
+            ],
+        ];
+        $config = Configurations::ofTree($tree);
+        $view = $config->subTreeView('a');
+
+        $this->expectException(UnmodifiableException::class);
+        $view['ac'] = 3;
     }
 }

@@ -43,6 +43,11 @@ abstract class Decorator extends Configuration implements DelimitedKeys
         $this->decorate = clone $this->decorate;
     }
 
+    public function toArrayTree(int|string $leafKey = null, ReadingMode $mode = ReadingMode::Normal): array
+    {
+        return $this->decorate->toArrayTree($leafKey, $mode);
+    }
+
     public function getDecorated(): Configuration
     {
         return $this->decorate;

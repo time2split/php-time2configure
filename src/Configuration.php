@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Time2Split\Config;
 
 use Time2Split\Config\Entry\ReadingMode;
@@ -25,12 +27,29 @@ abstract class Configuration implements TreeConfiguration
     /**
      * Gets an array representation of the entries.
      * 
+     * @param ReadingMode $mode
+     *            The mode with which to retrieves the entries value.
      * @return array<V>
      */
     public final function toArray(ReadingMode $mode = ReadingMode::Normal): array
     {
         return \iterator_to_array($this->getIterator($mode));
     }
+
+    /**
+     * Get a tree-shaped array representing the configuration contents.
+     * 
+     * @param int|string|null ?$leafKey
+     *      The array key to use to access to a node value.
+     *      If set to null then no key is needed to access to a leaf value, but an internal node value cannot be represented in the resulting tree.
+     * @param ReadingMode $mode
+     *            The mode with which to retrieves the entries value.
+     * @return An tree-shaped array representing the tree structure of the configuration.
+     */
+    public abstract function toArrayTree(
+        int|string $leafKey = null,
+        ReadingMode $mode = ReadingMode::Normal
+    ): array;
 
     /**
      * Gets a raw value iterator.

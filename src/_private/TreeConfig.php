@@ -1,9 +1,10 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\_private;
 
 use Time2Split\Config\Configuration;
-use Time2Split\Config\Interpolator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\_private\TreeConfig\TreeStorage;
 
@@ -15,14 +16,6 @@ use Time2Split\Config\_private\TreeConfig\TreeStorage;
  */
 final class TreeConfig extends AbstractTreeConfig
 {
-
-    public function copy(?Interpolator $interpolator = null): static
-    {
-        $ret = new self($this->delimiter, $interpolator ?? $this->interpolator);
-        $this->copyToAbstract($ret, $interpolator);
-        return $ret;
-    }
-
     /**
      *
      * @internal

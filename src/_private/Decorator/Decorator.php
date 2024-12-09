@@ -146,8 +146,8 @@ abstract class Decorator extends Configuration implements DelimitedKeys
         return $this->resetDecoration($this->decorate->copyBranches($offset, ...$offsets));
     }
 
-    public function removeNode($offset): void
+    public function offsetUnsetNode($offset): void
     {
-        $this->decorate->removeNode($offset);
+        $this->decorate->offsetUnsetNode($offset);
     }
 }

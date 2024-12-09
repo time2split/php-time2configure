@@ -433,7 +433,7 @@ final class ConfigurationTest extends TestCase
         $this->assertSame('aa', $view['aa']);
 
         // Remove the root of the view
-        $config->removeNode('a');
+        $config->offsetUnsetNode('a');
         $this->assertSame(0, \count($config));
         $this->assertSame('aa', $view['aa']);
     }
@@ -499,7 +499,7 @@ final class ConfigurationTest extends TestCase
         $check(3, 'unset leaf');
         Assert::assertSame(2, \count($config->copyBranches('a', 'b')));
         // Unset Node
-        $config->removeNode('a');
+        $config->offsetUnsetNode('a');
         $cpy = Configurations::treeCopyOf($config);
         $check(1, 'unset node');
         Assert::assertSame(0, \count($config->subTreeCopy('a')));
@@ -529,12 +529,12 @@ final class ConfigurationTest extends TestCase
         $this->assertSame(3, \count($config));
         $this->assertSame(2, \count($view));
 
-        $config->removeNode('a.ab');
+        $config->offsetUnsetNode('a.ab');
         $this->assertSame(2, \count($config));
         $this->assertSame(1, \count($view));
 
         // Remove the view root
-        $config->removeNode('a');
+        $config->offsetUnsetNode('a');
         $this->assertSame(1, \count($config));
         $this->assertSame(1, \count($view));
     }

@@ -230,9 +230,9 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
         $this->last()->offsetUnset($offset);
     }
 
-    public function removeNode($offset): void
+    public function offsetUnsetNode($offset): void
     {
-        $this->last()->removeNode($offset);
+        $this->last()->offsetUnsetNode($offset);
     }
 
     // ========================================================================

@@ -25,10 +25,9 @@ final class ConfigurationTest extends TestCase
 
     public static function getConfigProvidersLabeled(array ...$configs): array
     {
-        $mconfigs = \array_merge(...$configs);
         return [
-            'simple' => new Provided('simple', [new Producer(fn() => Configurations::ofTree($mconfigs))]),
-            'builder' => new Provided('builder', [new Producer(fn() => Configurations::builder()->mergeTree($mconfigs))]),
+            'simple' => new Provided('simple', [new Producer(fn() => Configurations::ofTree(...$configs))]),
+            'builder' => new Provided('builder', [new Producer(fn() => Configurations::builder()->mergeTree(...$configs))]),
             'childs' => new Provided('childs', [
                 new Producer(function () use ($configs) {
                     $configs = \array_reverse($configs);
@@ -154,6 +153,49 @@ final class ConfigurationTest extends TestCase
         // ====================================================================
         return $ret;
     }
+
+    // ========================================================================
+
+    public static function toArrayTreeProvider()
+    {
+        $a = [
+            'a' => 0,
+            'a.a' => 'a',
+            'd' => 1,
+        ];
+        $b = [
+            'a' => [
+                'b' => 10,
+                'c' => 20,
+            ]
+        ];
+        return Provided::merge(self::getConfigProviders($a, $b));
+    }
+    #[Test]
+    #[DataProvider('toArrayTreeProvider')]
+    public function toArrayTree(Configuration $config): void
+    {
+        $nullexpect = [
+            'a' => [
+                'a' => 'a',
+                'b' => 10,
+                'c' => 20,
+            ],
+            'd' => 1,
+        ];
+        $expect = [
+            'a' => [
+                '' => 0,
+                'a' => ['' => 'a'],
+                'b' => ['' => 10],
+                'c' => ['' => 20],
+            ],
+            'd' => ['' => 1],
+        ];
+        $this->assertEquals($nullexpect, $config->toArrayTree());
+        $this->assertEquals($expect, $config->toArrayTree(''));
+    }
+    // ========================================================================
 
     private function assertArrayEquals(array $a, array $b)
     {

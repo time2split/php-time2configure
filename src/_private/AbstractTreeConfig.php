@@ -108,6 +108,42 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     }
 
     // ========================================================================
+
+    public function toArrayTree(
+        int|string $leafKey = null,
+        ReadingMode $mode = ReadingMode::Normal
+    ): array {
+        $ret = [];
+        $toProcess = [[&$ret, &$this->storage]];
+
+        while (!empty($toProcess)) {
+            $nextToProcess = [];
+
+            foreach ($toProcess as [&$retNode, &$treeNode]) {
+                $hasValue = \array_key_exists('', $treeNode);
+                $isLeaf = $hasValue && \count($treeNode) === 1;
+
+                if ($hasValue && null !== $leafKey) {
+                    $assign = Entries::valueOf($treeNode[''], $this, $mode);
+                    $retNode[$leafKey] = $assign;
+                }
+                if (!$isLeaf) {
+
+                    foreach ($treeNode as $k => &$v) {
+
+                        if (\is_array($v))
+                            $nextToProcess[] = [&$retNode[$k], &$v];
+                    }
+                } elseif (null === $leafKey) {
+                    $assign = Entries::valueOf($treeNode[''], $this, $mode);
+                    $retNode = $assign;
+                }
+            }
+            $toProcess = $nextToProcess;
+        }
+        return $ret;
+    }
+
     public function getInterpolator(): Interpolator
     {
         return $this->interpolator;

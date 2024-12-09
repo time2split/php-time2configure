@@ -10,6 +10,7 @@ use Time2Split\Config\Entry\ReadingMode;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\Configurations;
 use Time2Split\Config\Entries;
+use Time2Split\Help\ArrayTrees;
 use Time2Split\Help\Iterables;
 use Time2Split\Help\Optional;
 
@@ -39,7 +40,7 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
         $delims = [];
 
         $list = \array_map(Configurations::ensureDelimitedKeys(...), $list);
-        $udelims = \Time2Split\Help\Arrays::arrayMapUnique(fn ($i) => $i->getKeyDelimiter(), $list);
+        $udelims = \Time2Split\Help\Arrays::arrayMapUnique(fn($i) => $i->getKeyDelimiter(), $list);
 
         if (\count($udelims) > 1)
             throw new \Error("Has multiple delimiters: " . print_r($delims, true));
@@ -79,6 +80,19 @@ final class TreeConfigHierarchy extends Configuration implements \IteratorAggreg
         for ($i = 1, $c = \count($this->rlist); $i < $c; $i++) {
             $ref = &$ret->rlist[$i];
             $ref = $ref->copy($interpolator);
+        }
+        return $ret;
+    }
+
+    public function toArrayTree(
+        int|string $leafKey = null,
+        ReadingMode $mode = ReadingMode::Normal
+    ): array {
+        $ret = [];
+
+        foreach ($this->rlist as $c) {
+            $tree = $c->toArrayTree($leafKey, $mode);
+            ArrayTrees::update($ret, $tree);
         }
         return $ret;
     }

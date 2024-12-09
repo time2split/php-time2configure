@@ -68,13 +68,13 @@ final class TreeConfigTest extends TestCase
     {
         return [
             [
-                fn () => Configurations::builder()
+                fn() => Configurations::builder()
             ],
             [
-                fn () => Configurations::builder()->build()
+                fn() => Configurations::builder()->build()
             ],
             [
-                fn () => Configurations::emptyChild(Configurations::builder()->build())
+                fn() => Configurations::emptyChild(Configurations::builder()->build())
             ]
         ];
     }
@@ -122,7 +122,7 @@ final class TreeConfigTest extends TestCase
 
             $this->assertTrue(isset($tree['a.a']), 'unset: isset a.a 2');
         } {
-            $tree->removeNode('a');
+            $tree->offsetUnsetNode('a');
             $this->assertSame(0, \count($tree));
 
             $this->assertFalse(isset($tree['a']), 'unsetNode: !isset a');
@@ -140,7 +140,7 @@ final class TreeConfigTest extends TestCase
         $this->assertSame(2, \count($tree));
         $tree['b'] = 0;
         $this->assertSame(3, \count($tree));
-        $tree->removeNode('a');
+        $tree->offsetUnsetNode('a');
         $this->assertSame(1, \count($tree));
     }
 }

@@ -55,6 +55,7 @@ final class Configurations
 
         return $config;
     }
+
     /**
      * @internal
      */
@@ -102,7 +103,7 @@ final class Configurations
      *            The configuration to copy from.
      * @param Interpolator $interpolator
      *            If not set (ie. null) the copy will contains the interpolated value of the configuration tree.
-     *            If set the copy will use this interpolator on the raw base value to create a new interpolated configuration.$this
+     *            If set the copy will use this interpolator on the raw base value to create a new interpolated configuration.
      *            Note that the interpolator may be the same as $config, in that case it means that the base interpolation is conserved.
      * @return Configuration A new Configuration instance.
      */
@@ -287,7 +288,7 @@ final class Configurations
     // ========================================================================
 
     /**
-     * Decorates a configuration to do an action when a value is read (only with interpolation).
+     * Decorates a configuration to do an action when a value is read (only in interpolation mode).
      * 
      * @template K
      * @template V

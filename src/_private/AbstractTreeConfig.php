@@ -342,7 +342,7 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         }
     }
 
-    public function removeNode($offset): void
+    public function offsetUnsetNode($offset): void
     {
         $path = $this->explodePath($offset);
 

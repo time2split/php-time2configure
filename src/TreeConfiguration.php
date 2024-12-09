@@ -69,5 +69,5 @@ interface TreeConfiguration extends BaseConfiguration
      * @param K $path
      *            A path to a node.
      */
-    public function removeNode($path): void;
+    public function offsetUnsetNode($path): void;
 }

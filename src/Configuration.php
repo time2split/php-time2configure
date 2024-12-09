@@ -39,12 +39,12 @@ abstract class Configuration implements TreeConfiguration
     /**
      * Get a tree-shaped array representing the configuration contents.
      * 
-     * @param int|string|null ?$leafKey
+     * @param int|string|null $leafKey
      *      The array key to use to access to a node value.
      *      If set to null then no key is needed to access to a leaf value, but an internal node value cannot be represented in the resulting tree.
      * @param ReadingMode $mode
      *            The mode with which to retrieves the entries value.
-     * @return An tree-shaped array representing the tree structure of the configuration.
+     * @return array<V> A tree-shaped array representing the tree structure of the configuration.
      */
     public abstract function toArrayTree(
         int|string $leafKey = null,
@@ -110,32 +110,33 @@ abstract class Configuration implements TreeConfiguration
     }
 
     /**
-     * Unsets some entries.
+     * Drops some leaf entries.
      * 
      * @param K $offsets Keys to drop.
      * @return static This configuration.
      * @see BaseConfiguration::offsetUnset()
      */
-    public final function unsetFluent(...$offsets): static
+    public final function unsetMore(...$offsets): static
     {
         foreach ($offsets as $offset)
             unset($this[$offset]);
 
         // Bug with phpstan: 
-        // Method Time2Split\Config\Configuration::unsetFluent() should return static(Time2Split\Config\Configuration<K, V>) but returns Time2Split\Config\Configuration<K, V>.
+        // Method Time2Split\Config\Configuration::unsetMore() should return static(Time2Split\Config\Configuration<K, V>) but returns Time2Split\Config\Configuration<K, V>.
         return $this;
     }
 
     /**
-     * Removes some nodes (fluent api).
+     * Drops some nodes.
+     * 
      * @param K $offsets
      * @return static This configuration.
-     * @see TreeConfiguration::removeNode()
+     * @see TreeConfiguration::offsetUnsetNode()
      */
-    public final function removeNodeFluent(...$offsets): static
+    public final function unsetNode(...$offsets): static
     {
         foreach ($offsets as $offset)
-            $this->removeNode($offset);
+            $this->offsetUnsetNode($offset);
 
         return $this;
     }

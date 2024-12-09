@@ -1,9 +1,12 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
+
 namespace Time2Split\Config\Tests;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use Time2Split\Config\Configurations;
 use Time2Split\Config\Exception\UnmodifiableException;
 
@@ -22,19 +25,20 @@ final class UnmodifiableTest extends TestCase
         ];
         return [
             [
-                fn () => Configurations::unmodifiable(Configurations::ofTree($tree))
+                fn() => Configurations::unmodifiable(Configurations::ofTree($tree))
             ],
             [
-                fn () => Configurations::unmodifiable(Configurations::ofTree($tree))->copy()
+                fn() => Configurations::unmodifiable(Configurations::ofTree($tree))->copy()
             ],
             [
-                fn () => clone Configurations::unmodifiable(Configurations::ofTree($tree))
+                fn() => clone Configurations::unmodifiable(Configurations::ofTree($tree))
             ]
         ];
     }
 
+    #[Test]
     #[DataProvider('unmodifiableProvider')]
-    public function testSet(\Closure $provider): void
+    public function set(\Closure $provider): void
     {
         $config = $provider();
         $this->expectException(UnmodifiableException::class);
@@ -42,24 +46,27 @@ final class UnmodifiableTest extends TestCase
         unset($config);
     }
 
+    #[Test]
     #[DataProvider('unmodifiableProvider')]
-    public function testUnset(\Closure $provider): void
+    public function unset(\Closure $provider): void
     {
         $config = $provider();
         $this->expectException(UnmodifiableException::class);
         unset($config['a']);
     }
 
+    #[Test]
     #[DataProvider('unmodifiableProvider')]
-    public function testRemoveNode(\Closure $provider): void
+    public function removeNode(\Closure $provider): void
     {
         $config = $provider();
         $this->expectException(UnmodifiableException::class);
-        $config->removeNode('a');
+        $config->offsetUnsetNode('a');
     }
 
+    #[Test]
     #[DataProvider('unmodifiableProvider')]
-    public function testMergeTree(\Closure $provider): void
+    public function mergeTree(\Closure $provider): void
     {
         $config = $provider();
         $this->expectException(UnmodifiableException::class);
@@ -68,8 +75,9 @@ final class UnmodifiableTest extends TestCase
         ]);
     }
 
+    #[Test]
     #[DataProvider('unmodifiableProvider')]
-    public function testMerge(\Closure $provider): void
+    public function merge(\Closure $provider): void
     {
         $config = $provider();
         $this->expectException(UnmodifiableException::class);
@@ -78,19 +86,21 @@ final class UnmodifiableTest extends TestCase
         ]);
     }
 
+    #[Test]
     #[DataProvider('unmodifiableProvider')]
-    public function testUnsetFluent(\Closure $provider): void
+    public function unsetMore(\Closure $provider): void
     {
         $config = $provider();
         $this->expectException(UnmodifiableException::class);
-        $config->unsetFluent('a');
+        $config->unsetMore('a');
     }
 
+    #[Test]
     #[DataProvider('unmodifiableProvider')]
-    public function testRemoveNodeFluent(\Closure $provider): void
+    public function unsetNode(\Closure $provider): void
     {
         $config = $provider();
         $this->expectException(UnmodifiableException::class);
-        $config->removeNodeFluent('a');
+        $config->unsetNode('a');
     }
 }

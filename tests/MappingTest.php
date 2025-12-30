@@ -54,7 +54,7 @@ final class MappingTest extends TestCase
     private static function configProvider(array $tree): array
     {
         $ret[] = new Provided('tree', [
-            new Producer(fn () => Configurations::ofTree($tree))
+            new Producer(fn() => Configurations::ofTree($tree))
         ]);
         return $ret;
     }
@@ -172,14 +172,19 @@ final class MappingTest extends TestCase
         foreach ($baseTree as $k => $notUsed)
             unset($doConf[$k]);
 
+        $this->assertCount(0, $doConf);
         $this->assertEmpty($doConf->toArray());
+        $this->assertNotEmpty($doConf->toArrayTree());
         $this->assertSame($baseKeys, $unset);
 
         $unset = [];
         $doConf->merge($baseTree);
+        // Note: Clear delete the values: the tree shape persists
         $doConf->clear();
+        $this->assertCount(0, $doConf);
         $this->assertEmpty($doConf->toArray());
-        $this->assertSame($baseKeys, $unset);
+        $this->assertEmpty($doConf->toArrayTree());
+        $this->assertEqualsCanonicalizing($baseKeys, $unset);
 
         unset($notUsed);
         unset($unset);

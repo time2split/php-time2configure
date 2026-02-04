@@ -3,9 +3,7 @@
 namespace Time2Split\Config\Entry;
 
 use Time2Split\Config\Configuration;
-use Time2Split\Config\Entry;
-// phpdoc
-use Time2Split\Config\Entries;
+use Time2Split\Help\Container\Entry;
 
 /**
  * Maps an entry.

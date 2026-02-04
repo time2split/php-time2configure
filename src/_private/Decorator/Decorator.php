@@ -33,6 +33,7 @@ abstract class Decorator extends Configuration implements DelimitedKeys
         $this->decorate = Configurations::ensureDelimitedKeys($decorate);
     }
 
+    #[\Override]
     public function copy(?Interpolator $interpolator = null): static
     {
         return $this->resetDecoration($this->decorate->copy($interpolator));
@@ -43,7 +44,8 @@ abstract class Decorator extends Configuration implements DelimitedKeys
         $this->decorate = clone $this->decorate;
     }
 
-    public function toArrayTree(int|string $leafKey = null, ReadingMode $mode = ReadingMode::Normal): array
+    #[\Override]
+    public function toArrayTree(int|string|null $leafKey = null, ReadingMode $mode = ReadingMode::Normal): array
     {
         return $this->decorate->toArrayTree($leafKey, $mode);
     }
@@ -78,46 +80,55 @@ abstract class Decorator extends Configuration implements DelimitedKeys
         return $this->decorate->getInterpolator();
     }
 
+    #[\Override]
     public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator
     {
         return $this->decorate->getIterator($mode);
     }
 
+    #[\Override]
     public function getOptional($offset, ReadingMode $mode = ReadingMode::Normal): Optional
     {
         return $this->decorate->getOptional($offset, $mode);
     }
 
+    #[\Override]
     public function isPresent($offset): bool
     {
         return $this->decorate->isPresent($offset);
     }
 
+    #[\Override]
     public function clear(): void
     {
         $this->decorate->clear();
     }
 
+    #[\Override]
     public function count(): int
     {
         return $this->decorate->count();
     }
 
+    #[\Override]
     public function offsetSet($offset, $value): void
     {
         $this->decorate->offsetSet($offset, $value);
     }
 
+    #[\Override]
     public function offsetGet(mixed $offset, ReadingMode $mode = ReadingMode::Normal): mixed
     {
         return $this->decorate->offsetGet($offset, $mode);
     }
 
+    #[\Override]
     public function offsetExists(mixed $offset): bool
     {
         return $this->decorate->offsetExists($offset);
     }
 
+    #[\Override]
     public function offsetUnset(mixed $offset): void
     {
         $this->decorate->offsetUnset($offset);
@@ -126,26 +137,32 @@ abstract class Decorator extends Configuration implements DelimitedKeys
     // ========================================================================
     // TreeConfiguration
     // ========================================================================
+
+    #[\Override]
     public function nodeIsPresent($offset): bool
     {
         return $this->decorate->nodeIsPresent($offset);
     }
 
+    #[\Override]
     public function subTreeCopy($offset): static
     {
         return $this->resetDecoration($this->decorate->subTreeCopy($offset));
     }
 
+    #[\Override]
     public function subTreeView($offset): static
     {
         return $this->resetDecoration($this->decorate->subTreeView($offset));
     }
 
+    #[\Override]
     public function copyBranches($offset, ...$offsets): static
     {
         return $this->resetDecoration($this->decorate->copyBranches($offset, ...$offsets));
     }
 
+    #[\Override]
     public function offsetUnsetNode($offset): void
     {
         $this->decorate->offsetUnsetNode($offset);

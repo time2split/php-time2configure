@@ -110,8 +110,47 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
     // ========================================================================
 
     public function toArrayTree(
-        int|string $leafKey = null,
-        ReadingMode $mode = ReadingMode::Normal
+        int|string|null $leafKey = null,
+        ReadingMode $mode = ReadingMode::Normal,
+        mixed $absentValue = null,
+    ): array {
+
+        if (empty($this->storage))
+            return [];
+        $ret = [];
+        $toProcess = [[&$ret, &$this->storage]];
+        $simpleArray = null === $leafKey;
+
+        if ($simpleArray)
+            return $this->toSimpleArrayTree($mode, $absentValue);
+
+        while (!empty($toProcess)) {
+            $nextToProcess = [];
+
+            foreach ($toProcess as [&$retNode, &$treeNode]) {
+
+                if (empty($treeNode)) {
+                    $retNode = [];
+                } else {
+                    foreach ($treeNode as $k => &$v) {
+
+                        // A node value
+                        if ($k === '') {
+                            $assign = Entries::valueOf($treeNode[''], $this, $mode);
+                            $retNode[$leafKey] = $assign;
+                        } else
+                            $nextToProcess[] = [&$retNode[$k], &$v];
+                    }
+                }
+            }
+            $toProcess = $nextToProcess;
+        }
+        return $ret;
+    }
+
+    private function toSimpleArrayTree(
+        ReadingMode $mode = ReadingMode::Normal,
+        mixed $absentValue = null,
     ): array {
         $ret = [];
         $toProcess = [[&$ret, &$this->storage]];
@@ -123,18 +162,18 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
                 $hasValue = \array_key_exists('', $treeNode);
                 $isLeaf = $hasValue && \count($treeNode) === 1;
 
-                if ($hasValue && null !== $leafKey) {
-                    $assign = Entries::valueOf($treeNode[''], $this, $mode);
-                    $retNode[$leafKey] = $assign;
-                }
                 if (!$isLeaf) {
 
-                    foreach ($treeNode as $k => &$v) {
+                    if (empty($treeNode)) {
+                        $retNode = $absentValue;
+                    } else {
+                        foreach ($treeNode as $k => &$v) {
 
-                        if (\is_array($v))
-                            $nextToProcess[] = [&$retNode[$k], &$v];
+                            if (\is_array($v))
+                                $nextToProcess[] = [&$retNode[$k], &$v];
+                        }
                     }
-                } elseif (null === $leafKey) {
+                } else {
                     $assign = Entries::valueOf($treeNode[''], $this, $mode);
                     $retNode = $assign;
                 }
@@ -488,13 +527,25 @@ abstract class AbstractTreeConfig extends Configuration implements TreeStorage, 
         /** @var array<K,V|Interpolation<V>> $v*/
         foreach ($data as $k => $v) {
 
-            if (\is_array($v)) {
+            if ($k === '')
+                yield $k => $v;
+            else {
 
-                if (\array_key_exists('', $v))
-                    yield $k => $v[''];
+                foreach ($this->rawEntriesOf2($v) as $kk => $vv)
+                    yield "$k$kk" => $vv;
+            }
+        }
+    }
+    private function rawEntriesOf2(array $data): \Iterator
+    {
+        foreach ($data as $k => $v) {
 
-                foreach ($this->rawEntriesOf($v) as $kk => $vv)
-                    yield "$k{$this->delimiter}$kk" => $vv;
+            if ($k === '')
+                yield '' => $v;
+            else {
+
+                foreach ($this->rawEntriesOf2($v) as $kk => $vv)
+                    yield ".$k$kk" => $vv;
             }
         }
     }

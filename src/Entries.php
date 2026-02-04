@@ -14,6 +14,7 @@ use Time2Split\Config\_private\Entry\AbstractConsumer;
 use Time2Split\Config\Entry\Map;
 use Time2Split\Help\Classes\NotInstanciable;
 use Time2Split\Config\Entry\ReadingMode;
+use Time2Split\Help\Container\Entry;
 
 /**
  * Functions on Entry.
@@ -180,9 +181,7 @@ final class Entries
     {
         return new class($map) implements Consumer
         {
-            public function __construct(private readonly Map $map)
-            {
-            }
+            public function __construct(private readonly Map $map) {}
 
             public function consume(Configuration $config, $key, $value): void
             {

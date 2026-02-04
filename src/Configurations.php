@@ -15,9 +15,10 @@ use Time2Split\Config\_private\Decorator\UnmodifiableDecorator;
 use Time2Split\Config\_private\TreeConfig\DelimitedKeys;
 use Time2Split\Config\_private\TreeConfig\TreeStorage;
 use Time2Split\Help\Optional;
-use Time2Split\Help\Set;
-use Time2Split\Help\Sets;
 use Time2Split\Help\Classes\NotInstanciable;
+use Time2Split\Help\Container\Class\IsUnmodifiable;
+use Time2Split\Help\Container\Set;
+use Time2Split\Help\Container\Sets;
 use Time2Split\Help\IterableTrees;
 
 /**
@@ -83,7 +84,7 @@ final class Configurations
      *            The configuration to wrap unmodifiable.
      * @return Configuration The unmodifiable instance.
      */
-    public static function unmodifiable(Configuration $config): Configuration
+    public static function unmodifiable(Configuration $config): Configuration&IsUnmodifiable
     {
         if ($config instanceof UnmodifiableDecorator)
             return $config;
@@ -358,9 +359,9 @@ final class Configurations
         $classInstance = ReadingMode::Normal;
 
         if (null === $list)
-            return self::$defaultModes ??= Sets::ofBackedEnum($classInstance)->setMore(ReadingMode::Normal);
+            return self::$defaultModes ??= Sets::ofBackedEnum($classInstance)->putMore(ReadingMode::Normal);
 
-        return Sets::ofBackedEnum($classInstance)->setFromList($list);
+        return Sets::ofBackedEnum($classInstance)->putFromList($list);
     }
 
     /**

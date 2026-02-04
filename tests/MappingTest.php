@@ -9,9 +9,9 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Configurations;
 use Time2Split\Config\Entries;
-use Time2Split\Config\Entry;
 use Time2Split\Config\Entry\Map;
 use Time2Split\Config\Entry\ReadingMode;
+use Time2Split\Help\Container\Entry;
 use Time2Split\Help\Tests\DataProvider\Producer;
 use Time2Split\Help\Tests\DataProvider\Provided;
 

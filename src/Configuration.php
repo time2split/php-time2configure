@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Time2Split\Config;
 
 use Time2Split\Config\Entry\ReadingMode;
+use Time2Split\Help\Container\Class\IsUnmodifiable;
+use Time2Split\Help\Container\Trait\ArrayAccessUpdating;
 
 /**
  * A TreeConfiguration with utilities methods.
@@ -23,6 +25,13 @@ use Time2Split\Config\Entry\ReadingMode;
  */
 abstract class Configuration implements TreeConfiguration
 {
+    use ArrayAccessUpdating;
+
+    #[\Override]
+    public function unmodifiable(): Configuration&IsUnmodifiable
+    {
+        return Configurations::unmodifiable($this);
+    }
 
     /**
      * Gets an array representation of the entries.
@@ -47,7 +56,7 @@ abstract class Configuration implements TreeConfiguration
      * @return array<V> A tree-shaped array representing the tree structure of the configuration.
      */
     public abstract function toArrayTree(
-        int|string $leafKey = null,
+        int|string|null $leafKey = null,
         ReadingMode $mode = ReadingMode::Normal
     ): array;
 
@@ -116,7 +125,8 @@ abstract class Configuration implements TreeConfiguration
      * @return static This configuration.
      * @see BaseConfiguration::offsetUnset()
      */
-    public final function unsetMore(...$offsets): static
+    #[\Override]
+    public function unsetMore(...$offsets): static
     {
         foreach ($offsets as $offset)
             unset($this[$offset]);

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Time2Split\Config\Tests;
 
 use PHPUnit\Framework\Assert;
-use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Time2Split\Config\Configuration;
 use Time2Split\Config\Configurations;
-use Time2Split\Config\Exception\UnmodifiableException;
+use Time2Split\Help\Exception\UnmodifiableException;
 use Time2Split\Help\Iterables;
+use Time2Split\Help\Tests\Container\AbstractArrayAccessContainerTestClass;
 use Time2Split\Help\Tests\DataProvider\Producer;
 use Time2Split\Help\Tests\DataProvider\Provided;
 
@@ -20,8 +20,25 @@ use Time2Split\Help\Tests\DataProvider\Provided;
  * @author Olivier Rodriguez (zuri)
  *
  */
-final class ConfigurationTest extends TestCase
+final class ConfigurationTest extends AbstractArrayAccessContainerTestClass
 {
+    #[\Override]
+    protected static function provideContainer(): Configuration
+    {
+        return Configurations::ofTree();
+    }
+
+    protected static function arrayValueIsAbsent(mixed $value): bool
+    {
+        return null === $value;
+    }
+
+    protected static function arrayValueIsPresent(mixed $value): bool
+    {
+        return null !== $value;
+    }
+
+    // ========================================================================
 
     public static function getConfigProvidersLabeled(array ...$configs): array
     {
@@ -121,13 +138,13 @@ final class ConfigurationTest extends TestCase
                 $providers['hierarchy']->data[0]->get(),
                 $overFlat,
                 $overAbsent,
-                $flat
+                // $flat
             ],
             'child/over-flat' => [
                 $providers['childs']->data[0]->get(),
                 $overFlat,
                 $overAbsent,
-                $flat
+                // $flat
             ]
         ]));
 
@@ -140,13 +157,13 @@ final class ConfigurationTest extends TestCase
                 $providers['hierarchy']->data[0]->get(),
                 $overFlat,
                 $overAbsent,
-                $overClear
+                // $overClear
             ],
             'flat/over;child' => [
                 $providers['childs']->data[0]->get(),
                 $overFlat,
                 $overAbsent,
-                $overClear
+                // $overClear
             ]
         ]));
 

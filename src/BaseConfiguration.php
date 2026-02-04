@@ -4,6 +4,7 @@ namespace Time2Split\Config;
 
 use Time2Split\Help\Optional;
 use Time2Split\Config\Entry\ReadingMode;
+use Time2Split\Help\Container\ContainerAA;
 
 /**
  * A sequence of (K => V) entries with automatic interpolation features.
@@ -26,7 +27,7 @@ use Time2Split\Config\Entry\ReadingMode;
  * @see Interpolation
  * @package time2configure\configuration
  */
-interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
+interface BaseConfiguration extends ContainerAA, \IteratorAggregate
 {
 
     /**
@@ -47,6 +48,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
      * 
      * @see ReadingMode
      */
+    #[\Override]
     public function getIterator(ReadingMode $mode = ReadingMode::Normal): \Iterator;
 
     // ========================================================================
@@ -57,6 +59,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
      * @param ?K $offset An offset to check for.
      * @return bool Returns true on success or false on failure.
      */
+    #[\Override]
     public function offsetExists($offset): bool;
 
     /**
@@ -68,6 +71,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
      * @return V The value of the offset, or null if absent.
      * @see \ArrayAccess::offsetGet()
      */
+    #[\Override]
     public function offsetGet($offset, ReadingMode $mode = ReadingMode::Normal): mixed;
 
     /**
@@ -76,6 +80,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
      * @param ?K $offset The offset to assign the value to.
      * @param V $value The value to set.
      */
+    #[\Override]
     public function offsetSet($offset, $value): void;
 
     /**
@@ -113,6 +118,7 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
     /**
      * Drops all items from the configuration.
      */
+    #[\Override]
     public function clear(): void;
 
     /**
@@ -127,5 +133,6 @@ interface BaseConfiguration extends \ArrayAccess, \IteratorAggregate, \Countable
      * 
      * @return static The copy.
      */
+    #[\Override]
     public function copy(?Interpolator $interpolator = null): static;
 }

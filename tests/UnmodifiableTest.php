@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Time2Split\Config\Configurations;
-use Time2Split\Config\Exception\UnmodifiableException;
+use Time2Split\Help\Exception\UnmodifiableException;
 
 /**
  *

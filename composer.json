@@ -26,10 +26,16 @@
 	},
 	"require": {
 		"php": ">=8.2",
+		"phpdocumentor/shim": "^3",
 		"time2split/time2help": "^0.3"
 	},
 	"require-dev": {
 		"phpunit/phpunit": "^11",
-		"phpstan/phpstan": "^1.10"
+		"phpstan/phpstan": "^2"
+	},
+	"config": {
+		"allow-plugins": {
+			"phpdocumentor/shim": true
+		}
 	}
 }
